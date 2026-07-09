@@ -1,57 +1,86 @@
-import React, { createContext, useState, useCallback, useMemo, use } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-// 1. Instantiate the raw context engine
-export const GameContext = createContext(null);
+const GameContext = createContext();
 
-// 2. State Machine Wrapper to control the Kiosk loop
 export function GameProvider({ children }) {
-  // Screens: 'attract' (Idle loop) | 'game' (Active Spin) | 'result' (Prize Win)
-  const [currentScreen, setCurrentScreen] = useState('attract');
+  const [screen, setScreen] = useState('attract'); // attract -> registration -> game -> result
   const [winningPrize, setWinningPrize] = useState(null);
   const [isSpinning, setIsSpinning] = useState(false);
+  const [leads, setLeads] = useState([]);
 
-  // Standard safe screen transitions
-  const goToScreen = useCallback((screen) => {
-    setCurrentScreen(screen);
+  // Load existing leads from localStorage on boot
+  useEffect(() => {
+    const storedLeads = localStorage.getItem('kiosk_leads');
+    if (storedLeads) {
+      try {
+        setLeads(JSON.parse(storedLeads));
+      } catch (e) {
+        console.error("Error reading storage map", e);
+      }
+    }
   }, []);
 
-  // Set the final selected prize and pivot to the rewards panel
-  const triggerWin = useCallback((prize) => {
+  const goToScreen = (targetScreen) => setScreen(targetScreen);
+
+  // Append new lead data to local storage database
+  const saveLead = (userData) => {
+    const updatedLeads = [...leads, { ...userData, timestamp: new Date().toISOString() }];
+    setLeads(updatedLeads);
+    localStorage.setItem('kiosk_leads', JSON.stringify(updatedLeads));
+  };
+
+  // Compile local leads database into a raw downloadable CSV file
+  const exportToCSV = () => {
+    if (leads.length === 0) {
+      alert("No data collected yet!");
+      return;
+    }
+    const headers = ['Name', 'Phone', 'Email', 'Timestamp'];
+    const rows = leads.map(l => [
+      `"${l.name.replace(/"/g, '""')}"`,
+      `"${l.phone.replace(/"/g, '""')}"`,
+      `"${l.email.replace(/"/g, '""')}"`,
+      `"${l.timestamp}"`
+    ]);
+    
+    const csvContent = [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `kiosk_leads_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const triggerWin = (prize) => {
     setWinningPrize(prize);
-    setCurrentScreen('result');
-  }, []);
+    setScreen('result');
+  };
 
-  // Hard reset back to idle state for the next user in line
-  const resetGame = useCallback(() => {
+  const resetGame = () => {
     setWinningPrize(null);
     setIsSpinning(false);
-    setCurrentScreen('attract');
-  }, []);
+    setScreen('attract');
+  };
 
-  // Stabilize the context object in memory to prevent layout stuttering
-  const stateValue = useMemo(() => ({
-    currentScreen,
-    winningPrize,
-    isSpinning,
-    setIsSpinning,
-    goToScreen,
-    triggerWin,
-    resetGame
-  }), [currentScreen, winningPrize, isSpinning, goToScreen, triggerWin, resetGame]);
-
-  // Modern React 19 Syntax: <Context> used directly instead of <Context.Provider>
   return (
-    <GameContext value={stateValue}>
+    <GameContext.Provider value={{
+      screen,
+      goToScreen,
+      winningPrize,
+      triggerWin,
+      isSpinning,
+      setIsSpinning,
+      resetGame,
+      saveLead,
+      exportToCSV,
+      leadsCount: leads.length
+    }}>
       {children}
-    </GameContext>
+    </GameContext.Provider>
   );
 }
 
-// 3. Custom native Hook for instant context consumption across screens
-export function useGame() {
-  const context = use(GameContext);
-  if (!context) {
-    throw new Error('useGame must be consumed within a valid GameProvider template');
-  }
-  return context;
-}
+export const useGame = () => useContext(GameContext);

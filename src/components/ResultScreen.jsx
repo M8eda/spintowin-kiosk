@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '../context/GameContext';
-import { Gift, ArrowLeft } from 'lucide-react';
+import { Gift, ArrowRight, Sparkles, ShieldCheck } from 'lucide-react';
 
 export default function ResultScreen() {
   const { winningPrize, resetGame } = useGame();
-  const [countdown, setCountdown] = useState(15); // 15-second safety boundary
+  const [countdown, setCountdown] = useState(15);
 
-  // Automatic Kiosk Idle Reset Watchdog
+  // Automatic safety loop: forces kiosk back to attract screen if player walks away
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
@@ -24,63 +24,88 @@ export default function ResultScreen() {
   }, [resetGame]);
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-between bg-gradient-to-b from-neutral-950 via-neutral-900 to-neutral-950 p-12 text-center relative select-none">
+    <div className="w-full h-full flex flex-col items-center justify-between bg-neutral-950 p-12 text-center select-none relative overflow-hidden">
       
-      {/* Upper Status Block */}
-      <div className="w-full flex flex-col items-center mt-12 gap-2">
-        <span className="text-yellow-400 font-black tracking-[0.4em] uppercase text-xl">
-          Allocation Successful
-        </span>
-        <div className="h-1 w-32 bg-gradient-to-r from-transparent via-yellow-400 to-transparent" />
-      </div>
+      {/* Immersive Premium Background Light Ambient Flares */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 w-full max-w-md h-px bg-gradient-to-r from-transparent via-neutral-800 to-transparent" />
 
-      {/* Center Congratulations Block - Scaled for High-Impact Tall Displays */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: "spring", stiffness: 100, damping: 15 }}
-        className="flex flex-col items-center gap-8 max-w-xl z-10"
+      {/* Top Verification Status Badge */}
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mt-16 flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-5 py-2.5 rounded-full"
       >
-        {/* Animated Reward Icon Shield */}
-        <div 
-          className="w-32 h-32 rounded-3xl flex items-center justify-center shadow-[0_0_50px_rgba(234,179,8,0.15)] border border-yellow-400/20"
-          style={{ backgroundColor: winningPrize?.color || '#8B5CF6' }}
-        >
-          <Gift className="w-16 h-16 text-white drop-shadow-md" />
-        </div>
-
-        <div className="space-y-4">
-          <h2 className="text-4xl md:text-5xl font-light text-neutral-400 uppercase tracking-wide">
-            Congratulations!
-          </h2>
-          <h3 className="text-6xl md:text-7xl font-black tracking-tight text-white uppercase drop-shadow-lg">
-            {winningPrize?.label || 'Exclusive Prize'}
-          </h3>
-        </div>
-
-        <p className="text-neutral-400 text-xl font-normal max-w-md bg-neutral-900/50 backdrop-blur-md px-6 py-4 rounded-xl border border-neutral-800">
-          Please present this touchscreen interface to the counter staff to instantly redeem your reward voucher.
-        </p>
+        <ShieldCheck className="w-5 h-5 text-emerald-400" />
+        <span className="text-xs font-black uppercase tracking-[0.25em] text-emerald-400">
+          Secure Allocation Successful
+        </span>
       </motion.div>
 
-      {/* Lower Control Actions & Active Safety Countdown Gauges */}
-      <div className="w-full flex flex-col items-center mb-12 gap-8 z-10">
+      {/* Central Luxurious Digital Voucher Ticket */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.92 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: "spring", damping: 25, stiffness: 120 }}
+        className="w-full max-w-md bg-gradient-to-b from-neutral-900 to-neutral-950 border-2 border-neutral-800/80 rounded-[32px] p-8 shadow-[0_30px_100px_rgba(0,0,0,0.8)] relative"
+      >
+        {/* Decorative Ticket Punch Side Cutouts */}
+        <div className="absolute -left-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-neutral-950 border-r-2 border-neutral-800 rounded-full" />
+        <div className="absolute -right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-neutral-950 border-l-2 border-neutral-800 rounded-full" />
+
+        <div className="flex flex-col items-center gap-6">
+          {/* Glowing Reward Icon Floating Frame */}
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 p-[2px] shadow-[0_0_40px_rgba(16,185,129,0.25)]">
+            <div className="w-full h-full bg-neutral-950 rounded-[14px] flex items-center justify-center">
+              <Gift className="w-9 h-9 text-emerald-400" />
+            </div>
+          </div>
+
+          {/* Winning Tier Text Blocks */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-neutral-500">
+              Congratulations
+            </h3>
+            <h2 className="text-4xl font-black tracking-tight text-white uppercase bg-clip-text">
+              {winningPrize || "Mystery Gift"}
+            </h2>
+          </div>
+
+          <div className="w-full border-t border-dashed border-neutral-800 my-2" />
+
+          {/* Operator Action Callout Frame */}
+          <p className="text-base text-neutral-400 font-medium leading-relaxed max-w-[280px]">
+            Please present this touchscreen interface to the counter staff to instantly redeem your reward voucher.
+          </p>
+        </div>
+      </motion.div>
+
+      {/* Lower Kiosk Reset Operational Triggers */}
+      <div className="w-full max-w-md flex flex-col items-center gap-6 mb-16">
         <button
           onClick={resetGame}
-          className="flex items-center gap-3 px-8 py-4 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 font-bold tracking-wide border border-neutral-800 transition-all hover:scale-105 active:scale-95"
+          className="w-full py-6 rounded-2xl font-black text-xl uppercase tracking-widest bg-neutral-900 border-2 border-neutral-800 text-neutral-200 hover:text-white active:scale-95 hover:bg-neutral-800/60 transition-all flex items-center justify-center gap-3 shadow-lg"
         >
-          <ArrowLeft className="w-5 h-5" />
           Done / Next Player
+          <ArrowRight className="w-5 h-5 text-neutral-500" />
         </button>
 
-        {/* Visual Countdown Progress Indicator */}
-        <div className="flex items-center gap-2 text-sm font-semibold tracking-widest text-neutral-600 uppercase">
-          <span>Auto-resetting in</span>
-          <span className="text-yellow-500/80 font-mono text-base bg-neutral-900 px-2 py-0.5 rounded border border-neutral-800/60">
-            {countdown}s
+        {/* Dynamic Countdown Status Gauge Bar */}
+        <div className="flex flex-col items-center gap-2 w-full px-4">
+          <div className="w-full h-1.5 bg-neutral-900 rounded-full overflow-hidden">
+            <motion.div 
+              initial={{ width: "100%" }}
+              animate={{ width: "0%" }}
+              transition={{ duration: 15, ease: "linear" }}
+              className="h-full bg-neutral-700 rounded-full"
+            />
+          </div>
+          <span className="text-xs font-mono font-bold tracking-widest text-neutral-600 uppercase">
+            Auto-resetting in {countdown}s
           </span>
         </div>
       </div>
+
     </div>
   );
 }
