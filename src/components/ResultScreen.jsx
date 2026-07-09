@@ -1,0 +1,1 @@
+export default function ResultScreen() { return <div className='w-full h-full flex items-center justify-center bg-neutral-900'><h2>Prize Won Panel Staged</h2></div>; }

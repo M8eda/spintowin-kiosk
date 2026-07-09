@@ -1,0 +1,1 @@
+export default function GameScreen() { return <div className='w-full h-full flex items-center justify-center bg-neutral-900'><h2>Wheel Main Interface Staged</h2></div>; }
