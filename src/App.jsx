@@ -7,9 +7,9 @@ import SpinScreen from './components/SpinScreen';
 import WinnerScreen from './components/WinnerScreen';
 
 const pageVariants = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1, transition: { duration: 0.5, ease: 'easeOut' } },
-  exit: { opacity: 0, transition: { duration: 0.25, ease: 'easeIn' } },
+  initial: { opacity: 0, scale: 0.97, filter: 'blur(8px)' },
+  animate: { opacity: 1, scale: 1, filter: 'blur(0px)', transition: { duration: 0.55, ease: [0.25, 0.46, 0.45, 0.94] } },
+  exit: { opacity: 0, scale: 1.03, filter: 'blur(8px)', transition: { duration: 0.3 } },
 };
 
 function SecretAdminButton({ onExport, leadCount }) {
@@ -19,10 +19,7 @@ function SecretAdminButton({ onExport, leadCount }) {
 
   const handleTap = useCallback(() => {
     taps.current += 1;
-    if (taps.current >= 3) {
-      setVisible(true);
-      taps.current = 0;
-    }
+    if (taps.current >= 3) { setVisible(true); taps.current = 0; }
     clearTimeout(timer.current);
     timer.current = setTimeout(() => { taps.current = 0; }, 1500);
   }, []);
