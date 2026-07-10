@@ -2,6 +2,36 @@
 import { motion } from 'framer-motion';
 import { Gem, Sparkles } from 'lucide-react';
 
+// ---------------------------------------------------------------------------
+// 1. Framer Motion Variants – Staggered entrance, quiet luxury feel
+// ---------------------------------------------------------------------------
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+      delayChildren: 0.2,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 24, scale: 0.97 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.7,
+      ease: [0.25, 0.46, 0.45, 0.94],
+    },
+  },
+};
+
+// ---------------------------------------------------------------------------
+// 2. Floating particles – deeper colors, smoother movement
+// ---------------------------------------------------------------------------
 function Particles() {
   const items = useMemo(() => Array.from({ length: 20 }, (_, i) => ({
     id: i,
@@ -27,21 +57,21 @@ function Particles() {
             height: p.size,
             background:
               p.color === 'amber'
-                ? 'radial-gradient(circle, rgba(255,215,0,0.7) 0%, rgba(255,180,0,0.2) 100%)'
+                ? 'radial-gradient(circle, rgba(255,215,0,0.8) 0%, rgba(255,180,0,0.25) 100%)'
                 : p.color === 'yellow'
-                ? 'radial-gradient(circle, rgba(255,240,0,0.6) 0%, rgba(255,200,0,0.2) 100%)'
-                : 'radial-gradient(circle, rgba(255,200,0,0.5) 0%, rgba(255,220,100,0.2) 100%)',
-            boxShadow: '0 0 8px rgba(255,215,0,0.4)',
+                ? 'radial-gradient(circle, rgba(255,240,0,0.7) 0%, rgba(255,200,0,0.2) 100%)'
+                : 'radial-gradient(circle, rgba(255,200,0,0.6) 0%, rgba(255,220,100,0.25) 100%)',
+            boxShadow: '0 0 10px rgba(255,215,0,0.5)',
           }}
           animate={{
-            x: [0, (Math.random() - 0.5) * 30, 0],
-            y: [0, (Math.random() - 0.5) * 30, 0],
-            opacity: [0.2, 0.7, 0.2],
-            scale: [0.8, 1.2, 0.8],
+            x: [0, (Math.random() - 0.5) * 25, 0],
+            y: [0, (Math.random() - 0.5) * 25, 0],
+            opacity: [0.2, 0.8, 0.2],
+            scale: [0.8, 1.3, 0.8],
           }}
           transition={{
             x: { duration: p.durationX, repeat: Infinity, ease: 'easeInOut' },
-            y: { duration: p.durationY, repeat: Infinity, ease: 'easeInOut', delay: p.delay * 0.3 },
+            y: { duration: p.durationY, repeat: Infinity, ease: 'easeInOut', delay: p.delay * 0.2 },
             opacity: { duration: 3 + Math.random() * 4, repeat: Infinity, ease: 'easeInOut' },
             scale: { duration: 4 + Math.random() * 3, repeat: Infinity, ease: 'easeInOut' },
           }}
@@ -51,79 +81,89 @@ function Particles() {
   );
 }
 
+// ---------------------------------------------------------------------------
+// 3. AttractScreen – "Quiet Luxury" styling
+// ---------------------------------------------------------------------------
 export default function AttractScreen({ onTouch }) {
   return (
     <motion.div
-      className="relative h-full w-full flex flex-col items-center justify-center cursor-pointer overflow-hidden velvet-bg"
+      className="relative h-full w-full flex flex-col items-center justify-center cursor-pointer overflow-hidden bg-[#0a0a0f]"
       onClick={onTouch}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 1.2, ease: 'easeOut' }}
+      transition={{ duration: 1.4, ease: 'easeOut' }}
     >
+      {/* Depth layers */}
       <Particles />
 
-      {/* Central glow behind gem – centered */}
-      <motion.div
-        className="absolute left-1/2 top-[calc(50%-6rem)] w-40 h-40 -translate-x-1/2 rounded-full bg-amber-500/10 blur-3xl"
-        animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-      />
+      {/* Soft radial glow behind gem – adds depth */}
+      <div className="absolute left-1/2 top-[calc(50%-7rem)] w-44 h-44 -translate-x-1/2 rounded-full bg-amber-500/10 blur-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-b from-amber-500/3 via-transparent to-amber-900/5 pointer-events-none" />
 
-      {/* Rotating gem logo */}
+      {/* Subtle ring around entire viewport */}
+      <div className="absolute inset-4 rounded-3xl ring-1 ring-amber-400/10 pointer-events-none" />
+
+      {/* Main content – staggered entrance */}
       <motion.div
-        className="mb-8 sm:mb-10 z-10"
-        animate={{ rotate: 360 }}
-        transition={{ duration: 28, repeat: Infinity, ease: 'linear' }}
+        className="relative z-10 flex flex-col items-center"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
       >
-        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-amber-400/40 flex items-center justify-center bg-amber-500/15 shadow-[0_0_80px_rgba(255,215,0,0.2)] backdrop-blur-sm">
-          <Gem className="w-8 h-8 sm:w-10 sm:h-10 text-amber-300" strokeWidth={1} />
-        </div>
+        {/* Gem logo */}
+        <motion.div
+          className="mb-10"
+          variants={itemVariants}
+          animate={{ rotate: 360 }}
+          transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
+        >
+          <div className="w-24 h-24 rounded-full border-2 border-amber-400/30 flex items-center justify-center bg-amber-500/10 backdrop-blur-sm shadow-[0_0_80px_rgba(255,215,0,0.15)] ring-1 ring-amber-400/20">
+            <Gem className="w-10 h-10 text-amber-300" strokeWidth={1} />
+          </div>
+        </motion.div>
+
+        {/* Brand name – elevated typography */}
+        <motion.h1
+          className="text-[13vw] sm:text-[4.5rem] leading-[0.85] font-serif font-thin tracking-[0.12em] text-transparent bg-clip-text bg-gradient-to-b from-amber-100 via-yellow-200 to-amber-500 text-center px-6"
+          variants={itemVariants}
+        >
+          PARKVILLE
+        </motion.h1>
+
+        {/* Decorative line */}
+        <motion.div
+          className="mx-auto w-16 h-px bg-gradient-to-r from-transparent via-amber-400/50 to-transparent mt-6 mb-4"
+          variants={itemVariants}
+        />
+
+        {/* Tagline */}
+        <motion.p
+          className="text-[2.5vw] sm:text-sm uppercase tracking-[0.6em] sm:tracking-[0.8em] text-amber-400/60 font-light"
+          variants={itemVariants}
+        >
+          Luxury Beauty Experience
+        </motion.p>
       </motion.div>
 
-      {/* Brand name – smaller on mobile */}
-      <motion.h1
-        className="text-[12vw] sm:text-[4.5rem] leading-[0.9] font-serif font-thin tracking-[0.12em] text-transparent bg-clip-text bg-gradient-to-b from-amber-100 via-yellow-200 to-amber-500 text-center px-6 z-10"
-        animate={{ scale: [1, 1.015, 1] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        PARKVILLE
-      </motion.h1>
-
-      {/* Decorative line – centered */}
+      {/* CTA – tactile hover state */}
       <motion.div
-        className="mx-auto w-16 h-px bg-gradient-to-r from-transparent via-amber-400/60 to-transparent mt-5 mb-3 z-10"
-        animate={{ opacity: [0.3, 0.8, 0.3] }}
-        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-      />
-
-      {/* Tagline */}
-      <motion.p
-        className="text-[2.5vw] sm:text-sm uppercase tracking-[0.6em] sm:tracking-[0.8em] text-amber-400/60 font-light z-10"
-        animate={{ opacity: [0.2, 0.7, 0.2] }}
-        transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        Luxury Beauty Experience
-      </motion.p>
-
-      {/* CTA Section */}
-      <motion.div
-        className="absolute bottom-[10%] sm:bottom-[12%] flex flex-col items-center gap-4 sm:gap-5 z-10"
-        animate={{ y: [0, -8, 0] }}
-        transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute bottom-[10%] sm:bottom-[12%] flex flex-col items-center gap-5 z-10"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1.2, duration: 0.8, ease: 'easeOut' }}
       >
         <motion.div
-          className="relative px-10 py-3.5 sm:px-12 sm:py-4 rounded-full bg-gradient-to-r from-amber-500 to-yellow-600 text-stone-900 font-bold uppercase tracking-[0.35em] sm:tracking-[0.4em] text-sm sm:text-base shadow-[0_0_50px_rgba(255,215,0,0.4)] flex items-center gap-2 sm:gap-3 overflow-hidden"
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
+          className="relative px-10 py-3.5 sm:px-12 sm:py-4 rounded-full bg-gradient-to-r from-amber-500 to-yellow-600 text-stone-900 font-bold uppercase tracking-[0.35em] sm:tracking-[0.4em] text-sm sm:text-base shadow-[0_0_50px_rgba(255,215,0,0.4)] flex items-center gap-2 sm:gap-3 overflow-hidden ring-1 ring-amber-300/30"
+          whileHover={{ scale: 1.04, boxShadow: '0 0 70px rgba(255,215,0,0.6)' }}
+          whileTap={{ scale: 0.96 }}
         >
-          {/* Shimmer overlay */}
-          <div className="absolute inset-0 animate-shimmer pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer pointer-events-none" />
           <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 relative z-10" />
           <span className="relative z-10">Touch to Begin</span>
           <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 relative z-10" />
         </motion.div>
 
-        {/* Indicator dots */}
+        {/* Pulsing indicator dots – subtle */}
         <div className="flex gap-2">
           <motion.div
             className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400/60"
