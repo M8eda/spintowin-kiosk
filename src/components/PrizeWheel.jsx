@@ -1,136 +1,104 @@
-import React, { useEffect, useRef } from 'react';
-import { useGame } from '../context/GameContext';
+﻿import { useState } from 'react';
+import confetti from 'canvas-confetti';
 
-const PRIZES = [
-   { text: 'AirPods Pro 🎧', color: '#002f94', textCol: '#ffffff' },
-   { text: 'Try Again 💫', color: '#f4f4f5', textCol: '#71717a' },
-   { text: 'Free Skincare 🧴', color: '#0a39a6', textCol: '#ffffff' },
-   { text: 'Mystery Gift 🎁', color: '#eab308', textCol: '#0a39a6' },
-   { text: 'Special Promo 🎟️', color: '#18181b', textCol: '#ffffff' },
-   { text: 'Try Again 💫', color: '#f4f4f5', textCol: '#71717a' },
-   { text: 'Hair Serum 💧', color: '#0f46be', textCol: '#ffffff' },
-   { text: 'Mega Jackpot 👑', color: '#eab308', textCol: '#0a39a6' }
+const prizes = [
+  { name: "Perfume 🧴", color: "#FF3366" },
+  { name: "Gift Card 💳", color: "#00E5FF" },
+  { name: "Skin Care ✨", color: "#FFD700" },
+  { name: "10% Off 🏷️", color: "#FF5722" },
+  { name: "Sample 🎁", color: "#9C27B0" },
+  { name: "VIP Pass 🎟️", color: "#4CAF50" },
+  { name: "Gold Set 👑", color: "#E91E63" },
+  { name: "Silver 🥈", color: "#2196F3" },
+  { name: "Bronze 🥉", color: "#FF9800" },
+  { name: "Mystery ❓", color: "#607D8B" },
+  { name: "2x Points ⚡", color: "#795548" },
+  { name: "Lucky Day 🍀", color: "#E53935" },
 ];
 
-export default function PrizeWheel() {
-   const { isSpinning, setIsSpinning, triggerWin } = useGame();
-   const canvasRef = useRef(null);
+export default function PrizeWheel({ onSpinComplete }) {
+  const [rotation, setRotation] = useState(0);
+  const [isSpinning, setIsSpinning] = useState(false);
 
-   const currentRotation = useRef(0);
-   const angularVelocity = useRef(0);
-   const isAnimating = useRef(false);
+  const spin = () => {
+    if (isSpinning) return;
+    setIsSpinning(true);
 
-   const drawWheel = (ctx, rotation) => {
-      const size = 480;
-      const center = size / 2;
-      const radius = center - 24;
-      const numSegments = PRIZES.length;
-      const arcSize = (2 * Math.PI) / numSegments;
+    const sliceAngle = 360 / prizes.length;
+    const randomSlice = Math.floor(Math.random() * prizes.length);
+    const extraRotation = randomSlice * sliceAngle;
+    setRotation(rotation + 1800 + extraRotation + (sliceAngle / 2));
 
-      ctx.clearRect(0, 0, size, size);
+    setTimeout(() => {
+      confetti({ particleCount: 200, spread: 100, origin: { y: 0.5 }, colors: ['#FFD700', '#FFFFFF'] });
+      setIsSpinning(false);
+      onSpinComplete(prizes[randomSlice].name);
+    }, 8000);
+  };
 
-      // Outer Frame Boundary Housing Ring
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(center, center, radius + 8, 0, 2 * Math.PI);
-      ctx.fillStyle = '#ffffff';
-      ctx.shadowColor = 'rgba(0,0,0,0.3)';
-      ctx.shadowBlur = 20;
-      ctx.fill();
-      ctx.restore();
-
-      // Render Individual Campaign Segments
-      PRIZES.forEach((prize, idx) => {
-         const startAngle = idx * arcSize + rotation;
-         const endAngle = startAngle + arcSize;
-
-         ctx.save();
-         ctx.beginPath();
-         ctx.moveTo(center, center);
-         ctx.arc(center, center, radius, startAngle, endAngle);
-         ctx.closePath();
-         ctx.fillStyle = prize.color;
-         ctx.fill();
-         ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-         ctx.lineWidth = 1.5;
-         ctx.stroke();
-         ctx.restore();
-
-         // Render Typography Core Labels
-         ctx.save();
-         ctx.translate(center, center);
-         ctx.rotate(startAngle + arcSize / 2);
-         ctx.textAlign = 'right';
-         ctx.textBaseline = 'middle';
-         ctx.fillStyle = prize.textCol;
-         ctx.font = 'bold 15px sans-serif';
-         ctx.fillText(prize.text.toUpperCase(), radius - 35, 0);
-         ctx.restore();
-      });
-
-      // Central Gloss Axis Core Button Pin Rim
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(center, center, 45, 0, 2 * Math.PI);
-      ctx.fillStyle = '#ffffff';
-      ctx.shadowColor = 'rgba(0,0,0,0.2)';
-      ctx.shadowBlur = 15;
-      ctx.fill();
-      ctx.restore();
-
-      ctx.save();
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = '#0a39a6';
-      ctx.font = 'black 13px sans-serif';
-      ctx.fillText('LUCK', center, center);
-      ctx.restore();
-   };
-
-   useEffect(() => {
-      if (isSpinning && !isAnimating.current) {
-         isAnimating.current = true;
-         angularVelocity.current = Math.random() * 0.35 + 0.45;
-      }
-   }, [isSpinning]);
-
-   useEffect(() => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-
-      let animationId;
-      const loop = () => {
-         if (angularVelocity.current > 0.0015) {
-            angularVelocity.current *= 0.983;
-            currentRotation.current += angularVelocity.current;
-            drawWheel(ctx, currentRotation.current);
-            animationId = requestAnimationFrame(loop);
-         } else if (isAnimating.current) {
-            angularVelocity.current = 0;
-            isAnimating.current = false;
-
-            const numSegments = PRIZES.length;
-            const arcSize = (2 * Math.PI) / numSegments;
-            let normRot = currentRotation.current % (2 * Math.PI);
-            const landingIdx = Math.floor((2 * Math.PI - normRot) / arcSize) % numSegments;
-
-            setTimeout(() => {
-               triggerWin(PRIZES[landingIdx].text);
-            }, 800);
-         } else {
-            drawWheel(ctx, currentRotation.current);
-         }
-      };
-
-      loop();
-      return () => cancelAnimationFrame(animationId);
-   }, [isSpinning, triggerWin]);
-
-   return (
-      <div className="relative flex items-center justify-center">
-         <div className="absolute -top-1.5 z-30 w-0 h-0 border-l-[16px] border-l-transparent border-r-[16px] border-r-transparent border-t-[32px] border-t-yellow-400 drop-shadow-md" />
-         <canvas ref={canvasRef} width={480} height={480} className="w-[340px] h-[340px] md:w-[410px] md:h-[410px] rounded-full" />
+  return (
+    <div className="relative flex flex-col items-center">
+      {/* Pointer */}
+      <div className="absolute top-[-40px] z-30 drop-shadow-[0_4px_4px_rgba(0,0,0,0.5)]">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="#FFD700" stroke="#B8860B" strokeWidth="1">
+           <path d="M12 22L2 2h20z" />
+        </svg>
       </div>
-   );
+
+      {/* Wheel Container */}
+      <div className="p-4 rounded-full border-4 border-dashed border-yellow-500/50 shadow-[0_0_60px_rgba(255,215,0,0.2)]">
+        <svg 
+          viewBox="0 0 100 100" 
+          className="w-[450px] h-[450px] transition-transform duration-[8000ms] ease-[cubic-bezier(0.17,0.67,0.12,0.99)] cursor-pointer"
+          style={{ transform: `rotate(${rotation}deg)` }}
+          onClick={spin}
+        >
+          {prizes.map((p, i) => {
+            const sliceAngle = 360 / prizes.length;
+            const startAngle = i * sliceAngle;
+            const midAngle = startAngle + (sliceAngle / 2);
+            
+            // Math for text positioning
+            const rad = (midAngle - 90) * (Math.PI / 180);
+            const textX = 50 + 35 * Math.cos(rad);
+            const textY = 50 + 35 * Math.sin(rad);
+
+            return (
+              <g key={i}>
+                <path 
+                  d={`M 50 50 L 50 0 A 50 50 0 0 1 ${50 + 50 * Math.sin(sliceAngle * Math.PI / 180)} ${50 - 50 * Math.cos(sliceAngle * Math.PI / 180)} Z`} 
+                  fill={p.color} 
+                  stroke="#fff" 
+                  strokeWidth="1" 
+                  transform={`rotate(${startAngle}, 50, 50)`}
+                />
+                {/* Text & Emoji */}
+                <text 
+                  x={textX} 
+                  y={textY} 
+                  fontSize="3" 
+                  fill="#fff" 
+                  fontWeight="800" 
+                  textAnchor="middle" 
+                  dominantBaseline="middle"
+                  style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.5)" }}
+                >
+                  {p.name}
+                </text>
+              </g>
+            );
+          })}
+          
+          {/* Center Hub */}
+          <circle cx="50" cy="50" r="10" fill="url(#goldGradient)" stroke="#8B4513" strokeWidth="1" />
+          <defs>
+            <radialGradient id="goldGradient">
+              <stop offset="0%" stopColor="#FFD700" />
+              <stop offset="100%" stopColor="#B8860B" />
+            </radialGradient>
+          </defs>
+        </svg>
+      </div>
+    </div>
+  );
 }
