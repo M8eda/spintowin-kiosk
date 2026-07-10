@@ -144,7 +144,7 @@ export default function SpinScreen({ onComplete }) {
     // Normalize rotation to 0-360
     const normalized = ((rot % 360) + 360) % 360;
     // Pointer is at top (12 o'clock) which is 270° in standard math (0° = 3 o'clock)
-    const pointerAngle = 0; // degrees
+    const pointerAngle = 270; // degrees
     // Winning segment index: angle of segment midpoint = index * SEG_ANGLE + SEG_ANGLE/2
     // We need: (segMid + normalized) mod 360 = pointerAngle
     // => segMid ≡ pointerAngle - normalized (mod 360)
@@ -200,7 +200,7 @@ export default function SpinScreen({ onComplete }) {
         {spinning ? 'Spinning...' : result ? 'Winner!' : 'Tap to Spin'}
       </motion.h2>
 
-      <div className="relative flex-shrink-0 w-[400px] h-[400px] max-w-[85vw] max-h-[85vw]">
+      <div className="relative flex-shrink-0 w-[400px] h-[400px] max-w-[90vw] max-h-[90vw]">
         <div className="absolute inset-[-30px] rounded-full bg-amber-500/10 blur-2xl" />
 
         <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-30">
@@ -272,4 +272,6 @@ export default function SpinScreen({ onComplete }) {
     </div>
   );
 }
+
+
 
