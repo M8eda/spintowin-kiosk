@@ -14,14 +14,13 @@ const PRIZES = [
 ];
 
 const SEG_COUNT = PRIZES.length;
-const SEG_ANGLE = 360 / SEG_COUNT; // 45°
+const SEG_ANGLE = 360 / SEG_COUNT;
 const SPIN_DURATION = 6;
 const SIZE = 400;
 const CENTER = SIZE / 2;
 const RADIUS = SIZE / 2 - 12;
 const POINTER_ANGLE = 270; // top (12 o'clock)
 
-// Reliable pie slice path
 function describeSlice(cx, cy, r, startAngle, endAngle) {
   const startRad = (startAngle * Math.PI) / 180;
   const endRad = (endAngle * Math.PI) / 180;
@@ -33,13 +32,11 @@ function describeSlice(cx, cy, r, startAngle, endAngle) {
   return `M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${largeArc} 1 ${x2},${y2} Z`;
 }
 
-function Segment({ prize, index }) {
+function Segment({ prize, index, isWinning }) {
   const startAngle = index * SEG_ANGLE;
   const endAngle = startAngle + SEG_ANGLE;
   const midAngle = startAngle + SEG_ANGLE / 2;
   const pathD = describeSlice(CENTER, CENTER, RADIUS, startAngle, endAngle);
-
-  // Position text along the segment's middle
   const midRad = (midAngle * Math.PI) / 180;
   const emojiR = RADIUS * 0.6;
   const labelR = RADIUS * 0.8;
@@ -51,6 +48,16 @@ function Segment({ prize, index }) {
   return (
     <g>
       <path d={pathD} fill={prize.color} stroke={prize.accent} strokeWidth="2" />
+      {/* Winning segment glow overlay */}
+      {isWinning && (
+        <path
+          d={pathD}
+          fill="rgba(255,215,0,0.25)"
+          stroke="#FBBF24"
+          strokeWidth="3"
+          className="winning-segment-overlay"
+        />
+      )}
       <text x={emojiX} y={emojiY} textAnchor="middle" dominantBaseline="central" fontSize="28" fill="white" fontWeight="bold" transform={`rotate(${midAngle}, ${emojiX}, ${emojiY})`} style={{ pointerEvents: 'none' }}>
         {prize.emoji}
       </text>
@@ -68,6 +75,7 @@ export default function SpinScreen({ onComplete }) {
   const [result, setResult] = useState(null);
   const [showResult, setShowResult] = useState(false);
   const [rotation, setRotation] = useState(0);
+  const [winningIndex, setWinningIndex] = useState(-1); // -1 = no winner yet
   const spinTimeoutRef = useRef(null);
   const revealTimeoutRef = useRef(null);
   const completeTimeoutRef = useRef(null);
@@ -76,7 +84,6 @@ export default function SpinScreen({ onComplete }) {
   const segments = useMemo(() => PRIZES, []);
   const { playTick, playWin } = useSound();
 
-  // Tick sound
   const scheduleTick = useCallback((delay) => {
     if (!mountedRef.current) return;
     tickTimerRef.current = setTimeout(() => {
@@ -112,30 +119,21 @@ export default function SpinScreen({ onComplete }) {
     setSpinning(true);
     setResult(null);
     setShowResult(false);
+    setWinningIndex(-1); // reset
 
-    // 1. Select winning prize
     const winIdx = Math.floor(Math.random() * segments.length);
     const prize = segments[winIdx];
-
-    // 2. The segment's midpoint angle in wheel's local coordinates
     const segMid = winIdx * SEG_ANGLE + SEG_ANGLE / 2;
-
-    // 3. Rotation needed so that this midpoint aligns with POINTER_ANGLE (270°)
-    // We want: (segMid + rotation) mod 360 = POINTER_ANGLE
-    // => rotation = POINTER_ANGLE - segMid
     let targetRotation = (POINTER_ANGLE - segMid + 360) % 360;
-
-    // Add several full turns for dramatic effect
     const fullTurns = (5 + Math.floor(Math.random() * 4)) * 360;
     const newRotation = rotation + fullTurns + targetRotation;
-
     setRotation(newRotation);
 
-    // After CSS transition ends
     spinTimeoutRef.current = setTimeout(() => {
       if (!mountedRef.current) return;
       setSpinning(false);
-      setResult(prize);
+      setWinningIndex(winIdx);    // trigger highlight
+      setResult(prize);           // show result text
       revealTimeoutRef.current = setTimeout(() => {
         if (!mountedRef.current) return;
         setShowResult(true);
@@ -148,7 +146,7 @@ export default function SpinScreen({ onComplete }) {
   }, [spinning, result, rotation, segments, onComplete]);
 
   return (
-    <div className="flex flex-col items-center justify-center w-full h-full px-4 gap-5 overflow-hidden" onPointerDown={!spinning && !result ? spin : undefined}>
+    <div className="flex flex-col items-center justify-center w-full h-full px-4 gap-5 overflow-hidden velvet-bg" onPointerDown={!spinning && !result ? spin : undefined}>
       <motion.h2 className="text-xl font-serif text-amber-200 tracking-[0.3em] uppercase text-center" animate={!spinning && !result ? { opacity: [0.5, 1, 0.5] } : {}} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}>
         {spinning ? 'Spinning...' : result ? 'Winner!' : 'Tap to Spin'}
       </motion.h2>
@@ -192,7 +190,9 @@ export default function SpinScreen({ onComplete }) {
             transition: spinning ? `transform ${SPIN_DURATION}s cubic-bezier(0.08, 0.82, 0.14, 1)` : 'none',
             willChange: spinning ? 'transform' : 'auto',
           }}>
-            {segments.map((prize, i) => (<MemoizedSegment key={i} prize={prize} index={i} />))}
+            {segments.map((prize, i) => (
+              <MemoizedSegment key={i} prize={prize} index={i} isWinning={i === winningIndex} />
+            ))}
           </g>
           <circle cx={CENTER} cy={CENTER} r="52" fill="#0A0A0F" stroke="url(#goldRing2)" strokeWidth="3" />
           <circle cx={CENTER} cy={CENTER} r="38" fill="url(#hubGold2)" stroke="#78350F" strokeWidth="2" />

@@ -54,7 +54,7 @@ function Particles() {
 export default function AttractScreen({ onTouch }) {
   return (
     <motion.div
-      className="relative h-full w-full flex flex-col items-center justify-center cursor-pointer overflow-hidden"
+      className="relative h-full w-full flex flex-col items-center justify-center cursor-pointer overflow-hidden velvet-bg"
       onClick={onTouch}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -112,13 +112,15 @@ export default function AttractScreen({ onTouch }) {
         transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
       >
         <motion.div
-          className="relative px-10 py-3.5 sm:px-12 sm:py-4 rounded-full bg-gradient-to-r from-amber-500 to-yellow-600 text-stone-900 font-bold uppercase tracking-[0.35em] sm:tracking-[0.4em] text-sm sm:text-base shadow-[0_0_50px_rgba(255,215,0,0.4)] flex items-center gap-2 sm:gap-3"
+          className="relative px-10 py-3.5 sm:px-12 sm:py-4 rounded-full bg-gradient-to-r from-amber-500 to-yellow-600 text-stone-900 font-bold uppercase tracking-[0.35em] sm:tracking-[0.4em] text-sm sm:text-base shadow-[0_0_50px_rgba(255,215,0,0.4)] flex items-center gap-2 sm:gap-3 overflow-hidden"
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
         >
-          <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
-          Touch to Begin
-          <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
+          {/* Shimmer overlay */}
+          <div className="absolute inset-0 animate-shimmer pointer-events-none" />
+          <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 relative z-10" />
+          <span className="relative z-10">Touch to Begin</span>
+          <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 relative z-10" />
         </motion.div>
 
         {/* Indicator dots */}
