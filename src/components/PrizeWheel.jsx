@@ -1,191 +1,136 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useGame } from '../context/GameContext';
 
 const PRIZES = [
-  { text: 'Grand Jackpot 👑', color: '#10b981', textColor: '#ffffff' },
-  { text: 'Try Again 💫', color: '#171717', textColor: '#a3a3a3' },
-  { text: 'Free Coffee ☕', color: '#8b5cf6', textColor: '#ffffff' },
-  { text: 'Mystery Box 🎁', color: '#ec4899', textColor: '#ffffff' },
-  { text: '20% Off Coupon 🎟️', color: '#f59e0b', textColor: '#ffffff' },
-  { text: 'Free Sticker ⚡', color: '#171717', textColor: '#a3a3a3' },
-  { text: 'VIP Pass 🎫', color: '#3b82f6', textColor: '#ffffff' },
-  { text: 'Special Merch 👕', color: '#ef4444', textColor: '#ffffff' },
+   { text: 'AirPods Pro 🎧', color: '#002f94', textCol: '#ffffff' },
+   { text: 'Try Again 💫', color: '#f4f4f5', textCol: '#71717a' },
+   { text: 'Free Skincare 🧴', color: '#0a39a6', textCol: '#ffffff' },
+   { text: 'Mystery Gift 🎁', color: '#eab308', textCol: '#0a39a6' },
+   { text: 'Special Promo 🎟️', color: '#18181b', textCol: '#ffffff' },
+   { text: 'Try Again 💫', color: '#f4f4f5', textCol: '#71717a' },
+   { text: 'Hair Serum 💧', color: '#0f46be', textCol: '#ffffff' },
+   { text: 'Mega Jackpot 👑', color: '#eab308', textCol: '#0a39a6' }
 ];
 
 export default function PrizeWheel() {
-  const { isSpinning, setIsSpinning, triggerWin } = useGame();
-  const canvasRef = useRef(null);
-  
-  // Physics Animation State Trackers
-  const currentRotation = useRef(0);
-  const angularVelocity = useRef(0);
-  const isAnimating = useRef(false);
+   const { isSpinning, setIsSpinning, triggerWin } = useGame();
+   const canvasRef = useRef(null);
 
-  // Redraw the entire premium graphics canvas layout layers
-  const drawWheel = (ctx, rotation) => {
-    const size = 480;
-    const center = size / 2;
-    const radius = center - 20;
-    const numSegments = PRIZES.length;
-    const arcSize = (2 * Math.PI) / numSegments;
+   const currentRotation = useRef(0);
+   const angularVelocity = useRef(0);
+   const isAnimating = useRef(false);
 
-    ctx.clearRect(0, 0, size, size);
+   const drawWheel = (ctx, rotation) => {
+      const size = 480;
+      const center = size / 2;
+      const radius = center - 24;
+      const numSegments = PRIZES.length;
+      const arcSize = (2 * Math.PI) / numSegments;
 
-    // Layer 1: Outer Premium Neon Glowing Rim Rim Outer Casting
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(center, center, radius + 8, 0, 2 * Math.PI);
-    ctx.fillStyle = '#141414';
-    ctx.shadowColor = '#a855f7';
-    ctx.shadowBlur = 30;
-    ctx.fill();
-    ctx.strokeStyle = '#262626';
-    ctx.lineWidth = 4;
-    ctx.stroke();
-    ctx.restore();
+      ctx.clearRect(0, 0, size, size);
 
-    // Layer 2: Draw Individual Slices with Gradients
-    PRIZES.forEach((prize, index) => {
-      const startAngle = index * arcSize + rotation;
-      const endAngle = startAngle + arcSize;
-
+      // Outer Frame Boundary Housing Ring
       ctx.save();
       ctx.beginPath();
-      ctx.moveTo(center, center);
-      ctx.arc(center, center, radius, startAngle, endAngle);
-      ctx.closePath();
-      
-      // Slice background fills
-      ctx.fillStyle = prize.color;
-      ctx.fill();
-
-      // Subtle slice separating panel lines
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-      ctx.restore();
-
-      // Layer 3: Render Typography inside Slices
-      ctx.save();
-      ctx.translate(center, center);
-      ctx.rotate(startAngle + arcSize / 2);
-      
-      ctx.textAlign = 'right';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = prize.textColor;
-      ctx.font = 'black 16px sans-serif';
-      
-      // Upper professional typography lettering casing transformations
-      ctx.fillText(prize.text.toUpperCase(), radius - 30, 0);
-      ctx.restore();
-    });
-
-    // Layer 4: Outer Target Pointer Pins Indicator
-    PRIZES.forEach((_, index) => {
-      const pinAngle = index * arcSize + rotation;
-      const pinX = center + radius * Math.cos(pinAngle);
-      const pinY = center + radius * Math.sin(pinAngle);
-
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(pinX, pinY, 5, 0, 2 * Math.PI);
+      ctx.arc(center, center, radius + 8, 0, 2 * Math.PI);
       ctx.fillStyle = '#ffffff';
-      ctx.shadowColor = '#ffffff';
-      ctx.shadowBlur = 8;
+      ctx.shadowColor = 'rgba(0,0,0,0.3)';
+      ctx.shadowBlur = 20;
       ctx.fill();
       ctx.restore();
-    });
 
-    // Layer 5: Polished Cyber-Glass Center Core Axis Hub
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(center, center, 45, 0, 2 * Math.PI);
-    ctx.fillStyle = '#0a0a0a';
-    ctx.shadowColor = '#000000';
-    ctx.shadowBlur = 20;
-    ctx.fill();
-    ctx.strokeStyle = '#3a3a3a';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    ctx.restore();
+      // Render Individual Campaign Segments
+      PRIZES.forEach((prize, idx) => {
+         const startAngle = idx * arcSize + rotation;
+         const endAngle = startAngle + arcSize;
 
-    // Core Center Branding Node Text Accents
-    ctx.save();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'black 12px sans-serif';
-    ctx.fillText('SPIN', center, center);
-    ctx.restore();
-  };
+         ctx.save();
+         ctx.beginPath();
+         ctx.moveTo(center, center);
+         ctx.arc(center, center, radius, startAngle, endAngle);
+         ctx.closePath();
+         ctx.fillStyle = prize.color;
+         ctx.fill();
+         ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+         ctx.lineWidth = 1.5;
+         ctx.stroke();
+         ctx.restore();
 
-  // Launch Core Spin Calculations Sequence Loop
-  useEffect(() => {
-    if (isSpinning && !isAnimating.current) {
-      isAnimating.current = true;
-      // Inject heavy explosive speed force, then decay using friction metrics
-      angularVelocity.current = Math.random() * 0.4 + 0.5; 
-    }
-  }, [isSpinning]);
+         // Render Typography Core Labels
+         ctx.save();
+         ctx.translate(center, center);
+         ctx.rotate(startAngle + arcSize / 2);
+         ctx.textAlign = 'right';
+         ctx.textBaseline = 'middle';
+         ctx.fillStyle = prize.textCol;
+         ctx.font = 'bold 15px sans-serif';
+         ctx.fillText(prize.text.toUpperCase(), radius - 35, 0);
+         ctx.restore();
+      });
 
-  // Handle continuous physics redraw ticks loop frames
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+      // Central Gloss Axis Core Button Pin Rim
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(center, center, 45, 0, 2 * Math.PI);
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = 'rgba(0,0,0,0.2)';
+      ctx.shadowBlur = 15;
+      ctx.fill();
+      ctx.restore();
 
-    let animationFrameId;
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#0a39a6';
+      ctx.font = 'black 13px sans-serif';
+      ctx.fillText('LUCK', center, center);
+      ctx.restore();
+   };
 
-    const renderLoop = () => {
-      if (angularVelocity.current > 0.001) {
-        // Friction Damping Factor Formula
-        angularVelocity.current *= 0.982; 
-        currentRotation.current += angularVelocity.current;
-        drawWheel(ctx, currentRotation.current);
-        animationFrameId = requestAnimationFrame(renderLoop);
-      } else if (isAnimating.current) {
-        // Physics have settled, finalize accurate prize segment bounds mapping
-        angularVelocity.current = 0;
-        isAnimating.current = false;
-
-        const numSegments = PRIZES.length;
-        const arcSize = (2 * Math.PI) / numSegments;
-        
-        // Normalize rotation back into standard unit circle space
-        let normalizedRotation = currentRotation.current % (2 * Math.PI);
-        
-        // Calculate slice sitting directly under top indicator layout pin (at 0 radians / 3 o'clock default)
-        // Adjust for desired target pin placement offset alignment coordinates
-        const landingIndex = Math.floor(
-          (2 * Math.PI - normalizedRotation) / arcSize
-        ) % numSegments;
-
-        const winningSegment = PRIZES[landingIndex];
-        
-        setTimeout(() => {
-          triggerWin(winningSegment.text);
-        }, 800);
-      } else {
-        drawWheel(ctx, currentRotation.current);
+   useEffect(() => {
+      if (isSpinning && !isAnimating.current) {
+         isAnimating.current = true;
+         angularVelocity.current = Math.random() * 0.35 + 0.45;
       }
-    };
+   }, [isSpinning]);
 
-    renderLoop();
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [isSpinning, triggerWin]);
+   useEffect(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
 
-  return (
-    <div className="relative flex items-center justify-center">
-      {/* Visual Top Pin Pointer Needle Overlay */}
-      <div className="absolute -top-1 z-30 w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[28px] border-t-white drop-shadow-[0_4px_10px_rgba(0,0,0,0.5)]" />
-      
-      {/* Ultra Smooth Graphics Raster Layer Surface */}
-      <canvas
-        ref={canvasRef}
-        width={480}
-        height={480}
-        className="w-[340px] h-[340px] md:w-[420px] md:h-[420px] rounded-full"
-      />
-    </div>
-  );
+      let animationId;
+      const loop = () => {
+         if (angularVelocity.current > 0.0015) {
+            angularVelocity.current *= 0.983;
+            currentRotation.current += angularVelocity.current;
+            drawWheel(ctx, currentRotation.current);
+            animationId = requestAnimationFrame(loop);
+         } else if (isAnimating.current) {
+            angularVelocity.current = 0;
+            isAnimating.current = false;
+
+            const numSegments = PRIZES.length;
+            const arcSize = (2 * Math.PI) / numSegments;
+            let normRot = currentRotation.current % (2 * Math.PI);
+            const landingIdx = Math.floor((2 * Math.PI - normRot) / arcSize) % numSegments;
+
+            setTimeout(() => {
+               triggerWin(PRIZES[landingIdx].text);
+            }, 800);
+         } else {
+            drawWheel(ctx, currentRotation.current);
+         }
+      };
+
+      loop();
+      return () => cancelAnimationFrame(animationId);
+   }, [isSpinning, triggerWin]);
+
+   return (
+      <div className="relative flex items-center justify-center">
+         <div className="absolute -top-1.5 z-30 w-0 h-0 border-l-[16px] border-l-transparent border-r-[16px] border-r-transparent border-t-[32px] border-t-yellow-400 drop-shadow-md" />
+         <canvas ref={canvasRef} width={480} height={480} className="w-[340px] h-[340px] md:w-[410px] md:h-[410px] rounded-full" />
+      </div>
+   );
 }

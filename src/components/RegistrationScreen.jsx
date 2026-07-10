@@ -1,212 +1,118 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '../context/GameContext';
-import { User, Phone, Mail, ArrowRight, CheckCircle2, ChevronDown } from 'lucide-react';
-
-const COUNTRIES = [
-  { code: 'AE', dial: '+971', flag: '🇦🇪', name: 'UAE', mask: /^\d{7,9}$/ },
-  { code: 'SA', dial: '+966', flag: '🇸🇦', name: 'Saudi Arabia', mask: /^\d{9}$/ },
-  { code: 'EG', dial: '+20', flag: '🇪🇬', name: 'Egypt', mask: /^\d{10}$/ },
-  { code: 'US', dial: '+1', flag: '🇺🇸', name: 'United States', mask: /^\d{10}$/ },
-  { code: 'GB', dial: '+44', flag: '🇬🇧', name: 'United Kingdom', mask: /^\d{10}$/ }
-];
+import { User, Smartphone, Mail, ArrowRight } from 'lucide-react';
 
 export default function RegistrationScreen() {
-  const { saveLead, goToScreen } = useGame();
-  
-  // Field States
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
-  
-  // Country Selector States
-  const [selectedCountry, setSelectedCountry] = useState(COUNTRIES[0]);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  
-  // Error Monitoring
-  const [validationError, setValidationError] = useState('');
+   const { saveLead, goToScreen } = useGame();
 
-  // Strict Name Input Guard (Accepts alphabetical characters and spaces only)
-  const handleNameChange = (e) => {
-    const rawValue = e.target.value;
-    const cleanValue = rawValue.replace(/[^a-zA-Z\s]/g, '');
-    setName(cleanValue);
-  };
+   const [name, setName] = useState('');
+   const [phone, setPhone] = useState('');
+   const [email, setEmail] = useState('');
+   const [error, setError] = useState('');
 
-  const handleFormSubmission = (e) => {
-    e.preventDefault();
-    setValidationError('');
+   const handleValidation = (e) => {
+      e.preventDefault();
+      setError('');
 
-    // 1. Structural Checklist
-    if (!name.trim() || !phone.trim() || !email.trim()) {
-      setValidationError('All identification fields must be completed.');
-      return;
-    }
+      if (!name.trim() || !phone.trim() || !email.trim()) {
+         setError('All fields are strictly required to activate token.');
+         return;
+      }
 
-    // 2. Strict Email Regex Validation
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(email.trim())) {
-      setValidationError('Please enter a valid, fully qualified email address.');
-      return;
-    }
+      if (phone.length < 10) {
+         setError('Please provide a valid mobile number format.');
+         return;
+      }
 
-    // 3. Dynamic Phone Field Numerical Parsing & Country Mask Checks
-    const cleanPhone = phone.replace(/\D/g, '');
-    if (!selectedCountry.mask.test(cleanPhone)) {
-      setValidationError(`Invalid number layout for ${selectedCountry.name}. Check length.`);
-      return;
-    }
+      saveLead({ name: name.trim(), phone: phone.trim(), email: email.trim().toLowerCase() });
+      goToScreen('game');
+   };
 
-    // Format final lead entry structure
-    saveLead({
-      name: name.trim(),
-      phone: `${selectedCountry.dial} ${cleanPhone}`,
-      email: email.trim().toLowerCase()
-    });
+   return (
+      <div className="w-full h-full flex flex-col justify-between p-12 text-center select-none relative">
 
-    goToScreen('game');
-  };
+         {/* Brand Identity Header */}
+         <div className="mt-12 space-y-2 shrink-0">
+            <h1 className="text-4xl font-black tracking-[0.15em] uppercase drop-shadow-md">
+               PARKVILLE
+            </h1>
+            <p className="text-lg font-bold text-blue-100 tracking-wide max-w-xs mx-auto">
+               Validate to receive new customer
+            </p>
+         </div>
 
-  return (
-    <div className="w-full h-full flex flex-col items-center justify-between bg-neutral-950 p-12 text-center select-none relative">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(168,85,247,0.05),transparent_50%)] pointer-events-none" />
+         {/* Pristine High-Contrast Content Card */}
+         <div className="w-full max-w-md mx-auto my-auto bg-white rounded-[32px] p-8 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] text-neutral-900 border border-neutral-100 text-left">
 
-      {/* Corporate Kiosk Branding Header */}
-      <div className="mt-16 space-y-4 z-10">
-        <span className="text-xs font-black tracking-[0.4em] uppercase text-purple-500 bg-purple-500/10 px-4 py-1.5 rounded-full border border-purple-500/20">
-          Player Registration
-        </span>
-        <h2 className="text-5xl font-black uppercase tracking-tight text-white">
-          Claim Your Session Token
-        </h2>
-        <p className="text-xl text-neutral-400 font-light max-w-sm mx-auto">
-          Verify your coordinates below to activate the prize matrix.
-        </p>
-      </div>
+            {error && (
+               <div className="mb-5 bg-rose-50 border-l-4 border-rose-500 p-4 rounded-xl text-rose-700 font-bold text-sm">
+                  {error}
+               </div>
+            )}
 
-      {/* High-End Touch Form Interface Container */}
-      <form onSubmit={handleFormSubmission} className="w-full max-w-md space-y-6 my-auto text-left z-10 relative">
-        
-        {/* Full Name Input Slot */}
-        <div className="space-y-2">
-          <label className="text-xs font-black uppercase tracking-widest text-neutral-500 ml-1">Full Name</label>
-          <div className="relative flex items-center">
-            <User className="absolute left-5 text-neutral-500 w-6 h-6" />
-            <input
-              type="text"
-              placeholder="Enter your name"
-              value={name}
-              onChange={handleNameChange}
-              className="w-full bg-neutral-900 border-2 border-neutral-800/80 focus:border-purple-500/80 rounded-2xl py-5 pl-14 pr-6 text-xl text-white outline-none transition-all font-medium placeholder-neutral-600"
-            />
-          </div>
-        </div>
+            <div className="space-y-5">
+               {/* Full Name Input */}
+               <div className="space-y-1">
+                  <label className="text-xs font-black uppercase tracking-wider text-neutral-400">Full Name</label>
+                  <div className="relative flex items-center">
+                     <User className="absolute left-4 text-neutral-400 w-5 h-5" />
+                     <input
+                        type="text"
+                        placeholder="Enter full name"
+                        value={name}
+                        onChange={(e) => setName(e.target.value.replace(/[^a-zA-Z\s]/g, ''))}
+                        className="w-full bg-neutral-50 border-2 border-neutral-200 focus:border-[#0a39a6] rounded-xl py-4 pl-12 pr-4 text-base font-bold outline-none transition-all text-neutral-900 placeholder-neutral-300"
+                     />
+                  </div>
+               </div>
 
-        {/* Dynamic International Phone Input Combo Slot */}
-        <div className="space-y-2 relative">
-          <label className="text-xs font-black uppercase tracking-widest text-neutral-500 ml-1">Phone Number</label>
-          <div className="flex gap-2 relative">
-            
-            {/* Custom Touch Country Flag Selector Dropdown Toggle Button */}
+               {/* Mobile Input */}
+               <div className="space-y-1">
+                  <label className="text-xs font-black uppercase tracking-wider text-neutral-400">Mobile Number</label>
+                  <div className="relative flex items-center">
+                     <Smartphone className="absolute left-4 text-neutral-400 w-5 h-5" />
+                     <input
+                        type="tel"
+                        placeholder="01xxxxxxxxx"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                        className="w-full bg-neutral-50 border-2 border-neutral-200 focus:border-[#0a39a6] rounded-xl py-4 pl-12 pr-4 text-base font-mono font-bold outline-none transition-all text-neutral-900 placeholder-neutral-300"
+                     />
+                  </div>
+               </div>
+
+               {/* Email Input */}
+               <div className="space-y-1">
+                  <label className="text-xs font-black uppercase tracking-wider text-neutral-400">Email Address</label>
+                  <div className="relative flex items-center">
+                     <Mail className="absolute left-4 text-neutral-400 w-5 h-5" />
+                     <input
+                        type="email"
+                        placeholder="name@domain.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full bg-neutral-50 border-2 border-neutral-200 focus:border-[#0a39a6] rounded-xl py-4 pl-12 pr-4 text-base font-bold outline-none transition-all text-neutral-900 placeholder-neutral-300"
+                     />
+                  </div>
+               </div>
+            </div>
+
+            {/* Validate Command Button */}
             <button
-              type="button"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-2 bg-neutral-900 border-2 border-neutral-800/80 rounded-2xl px-4 text-xl text-white active:bg-neutral-800 transition-colors shrink-0"
+               onClick={handleValidation}
+               className="w-full bg-[#0a39a6] hover:bg-[#0f46be] text-white py-4 rounded-xl font-black text-lg uppercase tracking-wider shadow-lg transition-all mt-6 flex items-center justify-center gap-2"
             >
-              <span className="text-2xl">{selectedCountry.flag}</span>
-              <span className="text-base font-bold text-neutral-400">{selectedCountry.dial}</span>
-              <ChevronDown className="w-4 h-4 text-neutral-500" />
+               Validate
+               <ArrowRight className="w-5 h-5" />
             </button>
 
-            {/* Scrolling Touch Popover Menu Overlay */}
-            <AnimatePresence>
-              {isDropdownOpen && (
-                <>
-                  <div className="fixed inset-0 z-30" onClick={() => setIsDropdownOpen(false)} />
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="absolute left-0 bottom-[calc(100%+8px)] w-72 max-h-60 overflow-y-auto bg-neutral-900/95 backdrop-blur-2xl border-2 border-neutral-800 rounded-2xl shadow-2xl z-40 p-2 space-y-1 custom-scrollbar"
-                  >
-                    {COUNTRIES.map((country) => (
-                      <button
-                        key={country.code}
-                        type="button"
-                        onClick={() => {
-                          setSelectedCountry(country);
-                          setIsDropdownOpen(false);
-                        }}
-                        className="w-full flex items-center justify-between p-3.5 hover:bg-neutral-800/80 rounded-xl transition-all text-left text-white"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl">{country.flag}</span>
-                          <span className="text-base font-medium">{country.name}</span>
-                        </div>
-                        <span className="text-sm font-bold font-mono text-neutral-500">{country.dial}</span>
-                      </button>
-                    ))}
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
+         </div>
 
-            {/* Numerical Digit Field Entry Input */}
-            <div className="relative flex items-center w-full">
-              <Phone className="absolute left-5 text-neutral-500 w-6 h-6" />
-              <input
-                type="tel"
-                placeholder="000 0000"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                className="w-full bg-neutral-900 border-2 border-neutral-800/80 focus:border-purple-500/80 rounded-2xl py-5 pl-14 pr-6 text-xl text-white outline-none transition-all font-medium placeholder-neutral-600"
-              />
-            </div>
-          </div>
-        </div>
+         {/* Footer Branding Context */}
+         <div className="mb-6 shrink-0 text-blue-200/50 text-xs font-bold uppercase tracking-widest">
+            Official Campaign Hardware Node
+         </div>
 
-        {/* Email Identification Input Slot */}
-        <div className="space-y-2">
-          <label className="text-xs font-black uppercase tracking-widest text-neutral-500 ml-1">Email Address</label>
-          <div className="relative flex items-center">
-            <Mail className="absolute left-5 text-neutral-500 w-6 h-6" />
-            <input
-              type="email"
-              placeholder="name@domain.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-neutral-900 border-2 border-neutral-800/80 focus:border-purple-500/80 rounded-2xl py-5 pl-14 pr-6 text-xl text-white outline-none transition-all font-medium placeholder-neutral-600"
-            />
-          </div>
-        </div>
-
-        {/* Inline Error Reporting Interface */}
-        <div className="min-h-[28px] flex items-center justify-center">
-          <AnimatePresence>
-            {validationError && (
-              <motion.p 
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="text-red-400 font-bold text-base text-center tracking-wide"
-              >
-                {validationError}
-              </motion.p>
-            )}
-          </AnimatePresence>
-        </div>
-      </form>
-
-      {/* Form Submission Action Interface Trigger */}
-      <div className="w-full flex justify-center mb-16 z-10">
-        <button
-          onClick={handleFormSubmission}
-          className="w-full max-w-md py-6 rounded-2xl font-black text-2xl uppercase tracking-widest bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 text-white hover:scale-[1.03] active:scale-95 shadow-[0_0_50px_rgba(168,85,247,0.2)] flex items-center justify-center gap-3 transition-all"
-        >
-          Proceed to Wheel
-          <ArrowRight className="w-6 h-6" />
-        </button>
       </div>
-    </div>
-  );
+   );
 }

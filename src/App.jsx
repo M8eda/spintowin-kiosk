@@ -1,63 +1,90 @@
-import React, { useState } from 'react';
-import { GameProvider, useGame } from './context/GameContext';
-import AttractScreen from './components/AttractScreen';
-import RegistrationScreen from './components/RegistrationScreen';
-import GameScreen from './components/GameScreen';
-import ResultScreen from './components/ResultScreen';
-import { Download, Sliders } from 'lucide-react';
-
-function KioskContent() {
-  const { screen, exportToCSV, leadsCount } = useGame();
-  const [showAdminMenu, setShowAdminMenu] = useState(false);
-
-  return (
-    <div className="w-screen h-screen overflow-hidden bg-[#fbfbfa] text-neutral-900 relative font-sans antialiased select-none touch-none">
-      
-      {/* High-End Ambient Lighting Orbs (Soft, elegant warm glows) */}
-      <div className="absolute top-[-10%] left-[-20%] w-[800px] h-[800px] bg-gradient-to-br from-amber-100/40 to-rose-100/30 rounded-full blur-[140px] pointer-events-none animate-pulse duration-[8s]" />
-      <div className="absolute bottom-[-10%] right-[-20%] w-[800px] h-[800px] bg-gradient-to-tr from-purple-100/30 to-blue-100/40 rounded-full blur-[140px] pointer-events-none animate-pulse duration-[12s]" />
-
-      {/* Invisible Admin Secret Corner Target Touch Area */}
-      <div 
-        className="absolute top-0 right-0 w-24 h-24 z-50 cursor-default"
-        onDoubleClick={() => setShowAdminMenu(!showAdminMenu)}
-      />
-
-      {/* Dynamic Screen Lifecycle Router Switch Matrix */}
-      <div className="w-full h-full relative z-10">
-        {screen === 'attract' && <AttractScreen />}
-        {screen === 'registration' && <RegistrationScreen />}
-        {screen === 'game' && <GameScreen />}
-        {screen === 'result' && <ResultScreen />}
-      </div>
-
-      {/* Premium Minimalist Slide-over Control Panel */}
-      {showAdminMenu && (
-        <div className="absolute top-6 right-6 z-50 flex items-center gap-4 bg-white/90 backdrop-blur-2xl px-5 py-3 rounded-2xl border border-neutral-200/80 shadow-[0_20px_50px_rgba(0,0,0,0.06)] animate-in fade-in slide-in-from-top-4 duration-200">
-          <div className="flex flex-col">
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-neutral-400 flex items-center gap-1.5">
-              <Sliders className="w-3 h-3 text-neutral-500" /> System Metrics
-            </span>
-            <span className="text-sm font-mono font-bold text-neutral-800 mt-0.5">{leadsCount} Records Secured</span>
-          </div>
-          <div className="h-6 w-[1px] bg-neutral-200" />
-          <button 
-            onClick={exportToCSV}
-            className="p-3 bg-neutral-900 hover:bg-neutral-800 active:scale-95 rounded-xl text-white transition-all flex items-center justify-center shadow-sm"
-            title="Download Raw Data CSV"
-          >
-            <Download className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
+﻿import { useState, useEffect } from 'react';
 
 export default function App() {
+  const [screen, setScreen] = useState('attract'); // attract, registration, spinning, winner
+  const [userData, setUserData] = useState({ name: '', mobile: '', email: '', prize: '' });
+  const [entries, setEntries] = useState([]); // This stores the history for the CSV export
+
+  const handleRegister = (e) => {
+    e.preventDefault();
+    setUserData({ ...userData, name: e.target.name.value, mobile: e.target.mobile.value, email: e.target.email.value });
+    setScreen('spinning');
+  };
+
+  const handleSpinComplete = (prize) => {
+    setUserData({ ...userData, prize });
+    setScreen('winner');
+  };
+
+  const finalizeWinner = () => {
+    const newEntry = { ...userData, timestamp: new Date().toLocaleString() };
+    setEntries([...entries, newEntry]);
+    setScreen('attract'); // Restart loop
+  };
+
+  // CSV Export Logic (Secretly hidden in the footer)
+  const downloadCSV = () => {
+    const csvContent = "data:text/csv;charset=utf-8," + 
+      ["Name,Mobile,Email,Prize,Timestamp"].concat(
+        entries.map(e => `${e.name},${e.mobile},${e.email},${e.prize},${e.timestamp}`)
+      ).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "kiosk_data.csv");
+    document.body.appendChild(link);
+    link.click();
+  };
+
   return (
-    <GameProvider>
-      <KioskContent />
-    </GameProvider>
+    <div className="min-h-screen w-full bg-stone-950 text-stone-100 font-sans overflow-hidden relative">
+      
+      {/* 1. ATTRACT SCREEN */}
+      {screen === 'attract' && (
+        <div className="h-screen w-full flex flex-col items-center justify-center cursor-pointer" onClick={() => setScreen('registration')}>
+          <h1 className="text-8xl font-serif font-light tracking-widest text-transparent bg-clip-text bg-gradient-to-b from-rose-200 to-rose-500 animate-pulse">PARKVILLE</h1>
+          <p className="mt-8 text-xl uppercase tracking-[0.5em] text-stone-400">Touch to Begin</p>
+        </div>
+      )}
+
+      {/* 2. REGISTRATION SCREEN */}
+      {screen === 'registration' && (
+        <div className="h-screen flex items-center justify-center p-8 animate-in fade-in duration-500">
+           <main className="w-full max-w-md bg-stone-900/40 backdrop-blur-2xl border border-rose-300/20 rounded-[2.5rem] p-10 shadow-2xl">
+            <form className="space-y-6" onSubmit={handleRegister}>
+              <input type="text" name="name" placeholder="Full Name" required className="w-full bg-transparent border-b border-stone-600 p-2 focus:border-rose-400 outline-none" />
+              <input type="tel" name="mobile" placeholder="Mobile Number" required className="w-full bg-transparent border-b border-stone-600 p-2 focus:border-rose-400 outline-none" />
+              <input type="email" name="email" placeholder="Email Address" required className="w-full bg-transparent border-b border-stone-600 p-2 focus:border-rose-400 outline-none" />
+              <button className="w-full bg-rose-500 text-stone-900 py-4 rounded-full font-bold uppercase tracking-widest">Unlock Spin</button>
+            </form>
+           </main>
+        </div>
+      )}
+
+      {/* 3. SPINNING SCREEN */}
+      {screen === 'spinning' && (
+        <div className="h-screen flex flex-col items-center justify-center animate-in zoom-in duration-500" onClick={() => handleSpinComplete("Luxury Gift Set")}>
+          <div className="w-80 h-80 border-[16px] border-rose-500 rounded-full flex items-center justify-center animate-spin">
+             <span className="text-4xl font-serif">SPIN</span>
+          </div>
+          <p className="mt-12 text-stone-400">Touch anywhere to spin...</p>
+        </div>
+      )}
+
+      {/* 4. WINNER SCREEN */}
+      {screen === 'winner' && (
+        <div className="h-screen flex flex-col items-center justify-center text-center animate-in slide-in-from-bottom-10 duration-500">
+          <h2 className="text-4xl font-serif text-rose-200 mb-8">You Won: {userData.prize}!</h2>
+          <button onClick={finalizeWinner} className="bg-rose-500 text-stone-900 px-12 py-4 rounded-full font-bold">Validate Prize</button>
+        </div>
+      )}
+
+      {/* HIDDEN ADMIN FOOTER */}
+      <footer className="absolute bottom-2 left-2">
+        <button onClick={downloadCSV} className="text-[8px] text-stone-800 hover:text-stone-500 uppercase tracking-widest">
+          Admin Export
+        </button>
+      </footer>
+    </div>
   );
 }
