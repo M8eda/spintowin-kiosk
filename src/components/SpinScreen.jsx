@@ -14,33 +14,33 @@ const PRIZES = [
 ];
 
 const SEG_COUNT = PRIZES.length;
-const SEG_ANGLE = 360 / SEG_COUNT;
-const SPIN_DURATION = 6; // seconds
+const SEG_ANGLE = 360 / SEG_COUNT; // 45°
+const SPIN_DURATION = 6;
 const SIZE = 400;
 const CENTER = SIZE / 2;
 const RADIUS = SIZE / 2 - 12;
+const POINTER_ANGLE = 270; // top (12 o'clock)
 
-// --- Helper: convert polar to cartesian ---
-function polarToCartesian(cx, cy, r, angleDeg) {
-  const rad = ((angleDeg - 90) * Math.PI) / 180;
-  return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
-}
-
-function describeArc(cx, cy, r, startAngle, endAngle) {
-  const start = polarToCartesian(cx, cy, r, endAngle);
-  const end = polarToCartesian(cx, cy, r, startAngle);
-  const largeArc = endAngle - startAngle <= 180 ? '0' : '1';
-  return `M${cx},${cy} L${start.x},${start.y} A${r},${r} 0 ${largeArc} 0 ${end.x},${end.y} Z`;
+// Reliable pie slice path
+function describeSlice(cx, cy, r, startAngle, endAngle) {
+  const startRad = (startAngle * Math.PI) / 180;
+  const endRad = (endAngle * Math.PI) / 180;
+  const x1 = cx + r * Math.cos(startRad);
+  const y1 = cy + r * Math.sin(startRad);
+  const x2 = cx + r * Math.cos(endRad);
+  const y2 = cy + r * Math.sin(endRad);
+  const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+  return `M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${largeArc} 1 ${x2},${y2} Z`;
 }
 
 function Segment({ prize, index }) {
   const startAngle = index * SEG_ANGLE;
   const endAngle = startAngle + SEG_ANGLE;
   const midAngle = startAngle + SEG_ANGLE / 2;
-  const pathD = describeArc(CENTER, CENTER, RADIUS, startAngle, endAngle);
+  const pathD = describeSlice(CENTER, CENTER, RADIUS, startAngle, endAngle);
 
-  // Position the emoji and label along the mid-angle
-  const midRad = ((midAngle - 90) * Math.PI) / 180;
+  // Position text along the segment's middle
+  const midRad = (midAngle * Math.PI) / 180;
   const emojiR = RADIUS * 0.6;
   const labelR = RADIUS * 0.8;
   const emojiX = CENTER + emojiR * Math.cos(midRad);
@@ -51,32 +51,10 @@ function Segment({ prize, index }) {
   return (
     <g>
       <path d={pathD} fill={prize.color} stroke={prize.accent} strokeWidth="2" />
-      <text
-        x={emojiX}
-        y={emojiY}
-        textAnchor="middle"
-        dominantBaseline="central"
-        fontSize="28"
-        fill="white"
-        fontWeight="bold"
-        transform={`rotate(${midAngle}, ${emojiX}, ${emojiY})`}
-        style={{ pointerEvents: 'none' }}
-      >
+      <text x={emojiX} y={emojiY} textAnchor="middle" dominantBaseline="central" fontSize="28" fill="white" fontWeight="bold" transform={`rotate(${midAngle}, ${emojiX}, ${emojiY})`} style={{ pointerEvents: 'none' }}>
         {prize.emoji}
       </text>
-      <text
-        x={labelX}
-        y={labelY}
-        textAnchor="middle"
-        dominantBaseline="central"
-        fontSize="11"
-        fill={prize.accent}
-        fontWeight="800"
-        fontFamily="sans-serif"
-        letterSpacing="1.5"
-        transform={`rotate(${midAngle}, ${labelX}, ${labelY})`}
-        style={{ pointerEvents: 'none' }}
-      >
+      <text x={labelX} y={labelY} textAnchor="middle" dominantBaseline="central" fontSize="11" fill={prize.accent} fontWeight="800" fontFamily="sans-serif" letterSpacing="1.5" transform={`rotate(${midAngle}, ${labelX}, ${labelY})`} style={{ pointerEvents: 'none' }}>
         {prize.label.toUpperCase()}
       </text>
     </g>
@@ -98,34 +76,24 @@ export default function SpinScreen({ onComplete }) {
   const segments = useMemo(() => PRIZES, []);
   const { playTick, playWin } = useSound();
 
-  // --- Tick sound that slows down ---
+  // Tick sound
   const scheduleTick = useCallback((delay) => {
     if (!mountedRef.current) return;
     tickTimerRef.current = setTimeout(() => {
       playTick();
-      // Increase delay gradually – simulate deceleration
-      const nextDelay = delay * 1.08; // 8% increase each tick
-      if (nextDelay < 400) {
-        scheduleTick(nextDelay);
-      }
+      const nextDelay = delay * 1.08;
+      if (nextDelay < 400) scheduleTick(nextDelay);
     }, delay);
   }, [playTick]);
 
   useEffect(() => {
-    if (spinning) {
-      // Start fast ticks
-      scheduleTick(40);
-    } else {
-      clearTimeout(tickTimerRef.current);
-    }
+    if (spinning) scheduleTick(40);
+    else clearTimeout(tickTimerRef.current);
     return () => clearTimeout(tickTimerRef.current);
   }, [spinning, scheduleTick]);
 
-  // --- Win sound ---
   useEffect(() => {
-    if (showResult) {
-      playWin();
-    }
+    if (showResult) playWin();
   }, [showResult, playWin]);
 
   useEffect(() => {
@@ -139,43 +107,35 @@ export default function SpinScreen({ onComplete }) {
     };
   }, []);
 
-  // --- Calculate winner from rotation angle ---
-  const getWinnerFromRotation = useCallback((rot) => {
-    // Normalize rotation to 0-360
-    const normalized = ((rot % 360) + 360) % 360;
-    // Pointer is at top (12 o'clock) which is 270° in standard math (0° = 3 o'clock)
-    const pointerAngle = 270; // degrees
-    // Winning segment index: angle of segment midpoint = index * SEG_ANGLE + SEG_ANGLE/2
-    // We need: (segMid + normalized) mod 360 = pointerAngle
-    // => segMid ≡ pointerAngle - normalized (mod 360)
-    const segMid = ((pointerAngle - normalized) + 360) % 360;
-    const idx = Math.floor(segMid / SEG_ANGLE);
-    return idx % SEG_COUNT;
-  }, []);
-
   const spin = useCallback(() => {
     if (spinning || result) return;
     setSpinning(true);
     setResult(null);
     setShowResult(false);
 
-    // Random final rotation: several full turns + random extra
-    const fullTurns = 5 + Math.floor(Math.random() * 4); // 5-8 turns
-    const randomExtra = Math.random() * 360;
-    const newRot = rotation + fullTurns * 360 + randomExtra;
-    setRotation(newRot);
+    // 1. Select winning prize
+    const winIdx = Math.floor(Math.random() * segments.length);
+    const prize = segments[winIdx];
 
-    // When spin animation ends (CSS transition duration)
+    // 2. The segment's midpoint angle in wheel's local coordinates
+    const segMid = winIdx * SEG_ANGLE + SEG_ANGLE / 2;
+
+    // 3. Rotation needed so that this midpoint aligns with POINTER_ANGLE (270°)
+    // We want: (segMid + rotation) mod 360 = POINTER_ANGLE
+    // => rotation = POINTER_ANGLE - segMid
+    let targetRotation = (POINTER_ANGLE - segMid + 360) % 360;
+
+    // Add several full turns for dramatic effect
+    const fullTurns = (5 + Math.floor(Math.random() * 4)) * 360;
+    const newRotation = rotation + fullTurns + targetRotation;
+
+    setRotation(newRotation);
+
+    // After CSS transition ends
     spinTimeoutRef.current = setTimeout(() => {
       if (!mountedRef.current) return;
       setSpinning(false);
-
-      // Determine winner
-      const winIdx = getWinnerFromRotation(newRot);
-      const prize = segments[winIdx];
       setResult(prize);
-
-      // Show result after a short delay
       revealTimeoutRef.current = setTimeout(() => {
         if (!mountedRef.current) return;
         setShowResult(true);
@@ -185,24 +145,16 @@ export default function SpinScreen({ onComplete }) {
         }, 2000);
       }, 400);
     }, SPIN_DURATION * 1000);
-  }, [spinning, result, rotation, getWinnerFromRotation, segments, onComplete]);
+  }, [spinning, result, rotation, segments, onComplete]);
 
   return (
-    <div
-      className="flex flex-col items-center justify-center w-full h-full px-4 gap-5 overflow-hidden"
-      onPointerDown={!spinning && !result ? spin : undefined}
-    >
-      <motion.h2
-        className="text-xl font-serif text-amber-200 tracking-[0.3em] uppercase text-center"
-        animate={!spinning && !result ? { opacity: [0.5, 1, 0.5] } : {}}
-        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-      >
+    <div className="flex flex-col items-center justify-center w-full h-full px-4 gap-5 overflow-hidden" onPointerDown={!spinning && !result ? spin : undefined}>
+      <motion.h2 className="text-xl font-serif text-amber-200 tracking-[0.3em] uppercase text-center" animate={!spinning && !result ? { opacity: [0.5, 1, 0.5] } : {}} transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}>
         {spinning ? 'Spinning...' : result ? 'Winner!' : 'Tap to Spin'}
       </motion.h2>
 
       <div className="relative flex-shrink-0 w-[400px] h-[400px] max-w-[90vw] max-h-[90vw]">
         <div className="absolute inset-[-30px] rounded-full bg-amber-500/10 blur-2xl" />
-
         <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-30">
           <svg width="48" height="52" viewBox="0 0 48 52">
             <defs>
@@ -219,13 +171,7 @@ export default function SpinScreen({ onComplete }) {
           </svg>
         </div>
 
-        <svg
-          width="100%"
-          height="100%"
-          viewBox={`0 0 ${SIZE} ${SIZE}`}
-          className="drop-shadow-2xl"
-          style={{ overflow: 'visible' }}
-        >
+        <svg width="100%" height="100%" viewBox={`0 0 ${SIZE} ${SIZE}`} className="drop-shadow-2xl" style={{ overflow: 'visible' }}>
           <defs>
             <linearGradient id="goldRing2" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stopColor="#FCD34D" />
@@ -239,20 +185,15 @@ export default function SpinScreen({ onComplete }) {
               <stop offset="100%" stopColor="#78350F" />
             </radialGradient>
           </defs>
-
           <circle cx={CENTER} cy={CENTER} r={RADIUS + 4} fill="none" stroke="url(#goldRing2)" strokeWidth="5" />
-
           <g style={{
             transform: `rotate(${rotation}deg)`,
             transformOrigin: `${CENTER}px ${CENTER}px`,
             transition: spinning ? `transform ${SPIN_DURATION}s cubic-bezier(0.08, 0.82, 0.14, 1)` : 'none',
             willChange: spinning ? 'transform' : 'auto',
           }}>
-            {segments.map((prize, i) => (
-              <MemoizedSegment key={i} prize={prize} index={i} />
-            ))}
+            {segments.map((prize, i) => (<MemoizedSegment key={i} prize={prize} index={i} />))}
           </g>
-
           <circle cx={CENTER} cy={CENTER} r="52" fill="#0A0A0F" stroke="url(#goldRing2)" strokeWidth="3" />
           <circle cx={CENTER} cy={CENTER} r="38" fill="url(#hubGold2)" stroke="#78350F" strokeWidth="2" />
           <text x={CENTER} y={CENTER + 4} textAnchor="middle" dominantBaseline="central" fontSize="28" fill="url(#hubGold2)" filter="drop-shadow(0 0 4px #000)">⭐</text>
@@ -272,6 +213,3 @@ export default function SpinScreen({ onComplete }) {
     </div>
   );
 }
-
-
-
