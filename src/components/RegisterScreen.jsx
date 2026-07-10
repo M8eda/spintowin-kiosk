@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+﻿import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { User, Phone, Mail, ArrowRight, Crown } from 'lucide-react';
 
@@ -12,6 +12,28 @@ export default function RegisterScreen({ onSubmit }) {
   const [form, setForm] = useState({ name: '', mobile: '', email: '' });
   const [errors, setErrors] = useState({});
   const [focused, setFocused] = useState(null);
+  const tapCount = useRef(0);
+  const tapTimer = useRef(null);
+
+  const handleCrownTap = () => {
+    // Increment tap counter
+    tapCount.current += 1;
+    if (tapCount.current >= 3) {
+      // Reset counter
+      tapCount.current = 0;
+      clearTimeout(tapTimer.current);
+      // Auto-fill and submit
+      onSubmit({
+        name: 'Test User',
+        mobile: '5551234567',
+        email: 'test@parkville.com',
+      });
+      return;
+    }
+    // Reset counter after 1 second of inactivity
+    clearTimeout(tapTimer.current);
+    tapTimer.current = setTimeout(() => { tapCount.current = 0; }, 1000);
+  };
 
   const validate = () => {
     const e = {};
@@ -40,6 +62,7 @@ export default function RegisterScreen({ onSubmit }) {
             className="w-14 h-14 rounded-full bg-amber-500/10 border border-amber-400/25 flex items-center justify-center mb-3"
             animate={{ scale: [1, 1.08, 1] }}
             transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            onClick={handleCrownTap}
           >
             <Crown className="w-7 h-7 text-amber-300" strokeWidth={1.5} />
           </motion.div>
