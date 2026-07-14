@@ -56,7 +56,6 @@ export default function RegisterScreen({ onSubmit }) {
     const errs = validate();
     if (Object.keys(errs).length) {
       setErrors(errs);
-      // Focus the first invalid field
       const firstError = FIELDS.find(f => errs[f.key])?.key;
       if (firstError) openField(firstError);
       return;
@@ -72,10 +71,8 @@ export default function RegisterScreen({ onSubmit }) {
   const openField = (fieldKey) => {
     setFocused(fieldKey);
     setKeyboardField(fieldKey);
-    // Auto-select keyboard type: digits for phone & idNumber, otherwise full keyboard
     setKeyboardType(fieldKey === 'phone' || fieldKey === 'idNumber' ? 'number' : 'text');
     setKeyboardOpen(true);
-    // Lift the field above the keyboard
     setTimeout(() => {
       const el = inputRefs.current[fieldKey];
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -174,10 +171,13 @@ export default function RegisterScreen({ onSubmit }) {
                       ref={(el) => (inputRefs.current[key] = el)}
                       type={type}
                       inputMode={inputMode}
-                      readOnly
                       aria-label={placeholder}
                       placeholder={placeholder}
                       value={form[key]}
+                      onChange={(e) => {
+                        setForm(p => ({ ...p, [key]: e.target.value }));
+                        if (errors[key]) setErrors(p => ({ ...p, [key]: undefined }));
+                      }}
                       onFocus={() => openField(key)}
                       onClick={() => openField(key)}
                       className={`w-full bg-white border-2 rounded-2xl pl-12 pr-4 py-4 text-gray-900 text-lg font-medium placeholder-gray-400 outline-none transition-all duration-200 shadow-sm text-center cursor-pointer ${
