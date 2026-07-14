@@ -1,3 +1,13 @@
+# fix-attract.ps1
+# Overwrites AttractScreen.jsx with a valid version that shows only the logo.
+
+$projectRoot = $PSScriptRoot
+if (-not $projectRoot) { $projectRoot = (Get-Location).Path }
+Set-Location $projectRoot
+
+$utf8NoBOM = New-Object System.Text.UTF8Encoding($false)
+
+$correctAttract = @'
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
@@ -145,3 +155,12 @@ export default function AttractScreen({ onTouch }) {
     </motion.div>
   );
 }
+'@
+
+$fullPath = Join-Path $projectRoot "src\components\AttractScreen.jsx"
+$dir = Split-Path $fullPath -Parent
+if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Force -Path $dir | Out-Null }
+[System.IO.File]::WriteAllText($fullPath, $correctAttract, $utf8NoBOM)
+
+Write-Host "AttractScreen.jsx replaced with the corrected version." -ForegroundColor Green
+Write-Host "Now restart your dev server: npm run dev" -ForegroundColor Yellow

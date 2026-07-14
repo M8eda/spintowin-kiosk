@@ -1,4 +1,4 @@
-﻿import { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { User, Phone, Mail, ArrowRight, Crown, Sparkles } from 'lucide-react';
 
@@ -52,20 +52,20 @@ export default function RegisterScreen({ onSubmit }) {
 
   return (
     <div className="min-h-screen w-full grid place-items-center p-4">
-      <div className="w-full max-w-[380px] bg-stone-900/80 backdrop-blur-2xl border border-amber-400/20 rounded-[2.5rem] p-8 shadow-2xl shadow-amber-500/10 mx-auto">
+      <div className="w-full max-w-[380px] bg-white/80 backdrop-blur-2xl border border-red-400/20 rounded-[2.5rem] p-8 shadow-2xl shadow-red-500/10 mx-auto">
         <div className="space-y-6">
           {/* Header */}
           <div className="flex flex-col items-center">
             <motion.div
-              className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-400/25 flex items-center justify-center mb-4"
+              className="w-16 h-16 rounded-full bg-red-500/10 border border-red-400/25 flex items-center justify-center mb-4"
               animate={{ scale: [1, 1.08, 1] }}
               transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
               onClick={handleCrownTap}
             >
-              <Crown className="w-8 h-8 text-amber-300" strokeWidth={1.5} />
+              <Crown className="w-8 h-8 text-red-300" strokeWidth={1.5} />
             </motion.div>
-            <h2 className="text-2xl font-serif text-amber-200 tracking-[0.25em] uppercase">Enter to Win</h2>
-            <p className="text-xs text-amber-500/40 tracking-[0.2em] uppercase mt-2">Fill details to unlock</p>
+            <h2 className="text-2xl font-serif text-red-200 tracking-[0.25em] uppercase">Enter to Win</h2>
+            <p className="text-xs text-red-500/40 tracking-[0.2em] uppercase mt-2">Fill details to unlock</p>
           </div>
 
           {/* Inputs */}
@@ -75,7 +75,7 @@ export default function RegisterScreen({ onSubmit }) {
                 <motion.div key={key} initial={{ opacity: 0, x: -15 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 * i, duration: 0.35 }}>
                   <div
                     className={`relative border-b-2 pb-3 transition-all duration-300 rounded-lg ${
-                      focused === key ? 'border-amber-400 bg-white/5' : errors[key] ? 'border-red-400/50' : 'border-stone-700/50'
+                      focused === key ? 'border-red-400 bg-red-50/50' : errors[key] ? 'border-red-400/50' : 'border-gray-200/50'
                     }`}
                   >
                     <motion.div
@@ -83,7 +83,7 @@ export default function RegisterScreen({ onSubmit }) {
                       animate={focused === key ? { scale: 1.15 } : { scale: 1 }}
                       transition={{ duration: 0.2 }}
                     >
-                      <Icon className={`w-5 h-5 transition-colors duration-300 ${focused === key ? 'text-amber-300' : errors[key] ? 'text-red-400' : 'text-stone-500'}`} strokeWidth={1.5} />
+                      <Icon className={`w-5 h-5 transition-colors duration-300 ${focused === key ? 'text-red-300' : errors[key] ? 'text-red-400' : 'text-gray-500'}`} strokeWidth={1.5} />
                     </motion.div>
                     <input
                       type={type}
@@ -107,12 +107,12 @@ export default function RegisterScreen({ onSubmit }) {
             </div>
 
             {/* Divider */}
-            <div className="w-2/3 mx-auto h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent my-6" />
+            <div className="w-2/3 mx-auto h-px bg-gradient-to-r from-transparent via-red-400/30 to-transparent my-6" />
 
             {/* Submit Button */}
             <motion.button
               type="submit"
-              className="relative w-full px-12 py-4 rounded-full bg-gradient-to-r from-amber-500 to-yellow-600 text-stone-900 font-bold uppercase tracking-[0.35em] text-base flex items-center justify-center gap-2 overflow-hidden ring-1 ring-amber-300/30"
+              className="relative w-full px-12 py-4 rounded-full bg-gradient-to-r from-red-500 to-red-700 text-black font-bold uppercase tracking-[0.35em] text-base flex items-center justify-center gap-2 overflow-hidden ring-1 ring-red-300/30"
               animate={{
                 scale: [1, 1.02, 1],
                 boxShadow: [

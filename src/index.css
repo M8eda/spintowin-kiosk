@@ -1,4 +1,4 @@
-﻿/* Google Fonts – Luxury Serif */
+/* Google Fonts â€“ Luxury Serif */
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400&family=Playfair+Display:wght@400;700;900&display=swap');
 
 @import "tailwindcss";
@@ -20,7 +20,7 @@ html, body, #root {
   position: fixed;
   top: 0;
   left: 0;
-  background: #08080c;
+  background: #ffffff;
   touch-action: manipulation;
   -webkit-overflow-scrolling: touch;
 }
@@ -36,7 +36,6 @@ html, body, #root {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Google Font utility classes */
 .playfair {
   font-family: 'Playfair Display', Georgia, serif;
 }
@@ -45,17 +44,16 @@ html, body, #root {
   font-family: 'Cormorant Garamond', Georgia, serif;
 }
 
-/* Golden glow animation (wheel outer ring) */
-@keyframes golden-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.25), 0 0 40px rgba(255, 180, 0, 0.08); }
-  50% { box-shadow: 0 0 35px rgba(255, 215, 0, 0.45), 0 0 70px rgba(255, 180, 0, 0.15); }
+/* Red glow â€“ replaces golden */
+@keyframes red-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(220, 38, 38, 0.25), 0 0 40px rgba(220, 38, 38, 0.08); }
+  50% { box-shadow: 0 0 35px rgba(220, 38, 38, 0.45), 0 0 70px rgba(220, 38, 38, 0.15); }
 }
 
-.animate-golden-glow {
-  animation: golden-glow 2.5s ease-in-out infinite;
+.animate-red-glow {
+  animation: red-glow 2.5s ease-in-out infinite;
 }
 
-/* Shimmer effect for CTA button */
 @keyframes shimmer {
   0% { background-position: -200% center; }
   100% { background-position: 200% center; }
@@ -74,24 +72,22 @@ html, body, #root {
   animation: shimmer 3s infinite;
 }
 
-/* Velvet texture background */
 .velvet-bg {
-  background-color: #0a0a0f;
+  background-color: #ffffff;
   background-image:
-    radial-gradient(ellipse at 50% 0%, rgba(255,215,0,0.04) 0%, transparent 60%),
-    radial-gradient(ellipse at 80% 20%, rgba(255,180,0,0.03) 0%, transparent 50%),
-    radial-gradient(ellipse at 20% 80%, rgba(255,140,0,0.03) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 0%, rgba(220,38,38,0.03) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(220,38,38,0.02) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 80%, rgba(200,0,0,0.02) 0%, transparent 50%),
     repeating-linear-gradient(
       45deg,
       transparent,
       transparent 2px,
-      rgba(255,255,255,0.008) 2px,
-      rgba(255,255,255,0.008) 4px
+      rgba(0,0,0,0.02) 2px,
+      rgba(0,0,0,0.02) 4px
     );
   background-attachment: fixed;
 }
 
-/* Winning segment pulse – subtle by default */
 @keyframes segmentPulse {
   0%, 100% { opacity: 0.35; transform: scale(1); }
   50% { opacity: 0.8; transform: scale(1.02); }
@@ -103,7 +99,6 @@ html, body, #root {
   pointer-events: none;
 }
 
-/* White‑hot anticipation glow */
 @keyframes whiteHotPulse {
   0%, 100% { opacity: 0.6; filter: brightness(1.5) blur(2px); }
   50% { opacity: 1; filter: brightness(2.2) blur(4px); }
@@ -114,27 +109,23 @@ html, body, #root {
   pointer-events: none;
 }
 
-/* Subtle blur overlay for anticipation */
 .anticipation-dim {
   background: rgba(0,0,0,0.3);
   backdrop-filter: blur(2px);
 }
 
-/* Hub pulse */
 @keyframes hubPulse {
-  0%, 100% { filter: drop-shadow(0 0 4px rgba(255,215,0,0.5)); }
-  50% { filter: drop-shadow(0 0 14px rgba(255,215,0,0.9)); }
+  0%, 100% { filter: drop-shadow(0 0 4px rgba(220,38,38,0.5)); }
+  50% { filter: drop-shadow(0 0 14px rgba(220,38,38,0.9)); }
 }
 
 .hub-pulse {
   animation: hubPulse 0.8s ease-in-out infinite;
 }
 
-/* Rim light */
 .rim-light {
   box-shadow:
-    0 0 0 2px rgba(255,215,0,0.25),
-    0 0 40px rgba(255,215,0,0.35),
-    0 0 100px rgba(255,180,0,0.15);
+    0 0 0 2px rgba(220,38,38,0.25),
+    0 0 40px rgba(220,38,38,0.35),
+    0 0 100px rgba(180,20,20,0.15);
 }
-

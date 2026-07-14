@@ -1,4 +1,4 @@
-﻿import { motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 const pageVariants = {
   initial: { opacity: 0, scale: 0.97, filter: 'blur(8px)' },
@@ -8,18 +8,18 @@ const pageVariants = {
 
 export default function Layout({ children }) {
   return (
-    <div className="fixed inset-0 bg-[#08080c] text-white antialiased overflow-hidden">
+    <div className="fixed inset-0 bg-white text-black antialiased overflow-hidden">
       {/* Persistent velvet background */}
       <div className="absolute inset-0 velvet-bg z-0 pointer-events-none" />
 
       {/* Ambient glow (behind everything) */}
       <div className="pointer-events-none absolute inset-0 z-0">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150vw] h-[50vh] rounded-full bg-amber-500/5 blur-[150px]" />
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[150vw] h-[40vh] rounded-full bg-rose-600/4 blur-[120px]" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[150vw] h-[50vh] rounded-full bg-red-500/5 blur-[150px]" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[150vw] h-[40vh] rounded-full bg-red-600/4 blur-[120px]" />
       </div>
 
-      {/* Golden inner border – never blocks touches */}
-      <div className="absolute inset-4 rounded-3xl ring-1 ring-amber-400/10 pointer-events-none z-50" />
+      {/* Golden inner border Ã¢â‚¬â€œ never blocks touches */}
+      <div className="absolute inset-4 rounded-3xl ring-1 ring-red-400/10 pointer-events-none z-50" />
 
       {/* Page content */}
       <motion.div
