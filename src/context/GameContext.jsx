@@ -1,18 +1,16 @@
 import React, { createContext, useContext, useReducer } from 'react';
 
-// Master list of available segment metadata
 export const PRIZES = [
-  { id: '1', name: '0.5 g Gold Bar', color: '#F44336', text: '#FFFFFF', emoji: '\uD83E\uDDC8', weight: 1 },
-  { id: '2', name: '0.25 g Gold Bar', color: '#FF9800', text: '#1C1917', emoji: '\uD83E\uDDC8', weight: 2 },
-  { id: '3', name: 'Smart Earbuds', color: '#FFEB3B', text: '#1C1917', emoji: '\uD83C\uDFA7', weight: 5 },
-  { id: '4', name: 'Smartwatch', color: '#4CAF50', text: '#FFFFFF', emoji: '\u231A', weight: 4 },
-  { id: '5', name: 'Gold Pound', color: '#2196F3', text: '#FFFFFF', emoji: '\uD83E\uDE99', weight: 1 },
-  { id: '6', name: '1,000 Reward Points', color: '#9C27B0', text: '#FFFFFF', emoji: '\uD83C\uDFAB\uFE0F', weight: 30 },
-  { id: '7', name: '3,000 Reward Points', color: '#00BCD4', text: '#1C1917', emoji: '\uD83C\uDFAB\uFE0F', weight: 15 },
-  { id: '8', name: 'Giveaway Item', color: '#795548', text: '#FFFFFF', emoji: '\uD83C\uDF81', weight: 42 }
+  { id: '1', name: '0.5 g Gold Bar', color: '#F44336', text: '#FFFFFF', emoji: '🧈', weight: 1 },
+  { id: '2', name: '0.25 g Gold Bar', color: '#FF9800', text: '#1C1917', emoji: '🧈', weight: 2 },
+  { id: '3', name: 'Smart Earbuds', color: '#FFEB3B', text: '#1C1917', emoji: '🎧', weight: 5 },
+  { id: '4', name: 'Smartwatch', color: '#4CAF50', text: '#FFFFFF', emoji: '⌚', weight: 4 },
+  { id: '5', name: 'Gold Pound', color: '#2196F3', text: '#FFFFFF', emoji: '🪙', weight: 1 },
+  { id: '6', name: '1,000 Reward Points', color: '#9C27B0', text: '#FFFFFF', emoji: '🎫️', weight: 30 },
+  { id: '7', name: '3,000 Reward Points', color: '#00BCD4', text: '#1C1917', emoji: '🎫️', weight: 15 },
+  { id: '8', name: 'Giveaway Item', color: '#795548', text: '#FFFFFF', emoji: '🎁', weight: 42 }
 ];
 
-// Prize inventory â€“ names only (will be mapped to objects)
 const HOURLY_INVENTORY_NAMES = {
   '7pm': ['0.5 g Gold Bar', 'Smart Earbuds', '1,000 Reward Points', '1,000 Reward Points', '3,000 Reward Points', '3,000 Reward Points', 'Giveaway Item', 'Giveaway Item'],
   '8pm': ['Gold Pound', 'Smartwatch', '0.25 g Gold Bar', '1,000 Reward Points', '1,000 Reward Points', '3,000 Reward Points', '3,000 Reward Points', 'Giveaway Item', 'Giveaway Item'],
@@ -20,7 +18,6 @@ const HOURLY_INVENTORY_NAMES = {
   '10pm': ['Gold Pound', 'Smart Earbuds', '1,000 Reward Points', '1,000 Reward Points', '3,000 Reward Points', '3,000 Reward Points', 'Giveaway Item', 'Giveaway Item']
 };
 
-// Helper: map names to full prize objects
 function mapInventoryToPrizeObjects(names) {
   return names.map(name => {
     const prize = PRIZES.find(p => p.name === name);
@@ -28,7 +25,7 @@ function mapInventoryToPrizeObjects(names) {
       console.warn(`Prize "${name}" not found in PRIZES`);
       return null;
     }
-    return { ...prize }; // clone to avoid mutation
+    return { ...prize };
   }).filter(p => p !== null);
 }
 
@@ -76,7 +73,6 @@ function gameReducer(state, action) {
     case 'START_SESSION': {
       const sessionKey = action.payload;
       let currentDeck = state.sessionDecks[sessionKey];
-      // If deck doesn't exist or is empty, build it from inventory
       if (!currentDeck || currentDeck.length === 0) {
         const names = HOURLY_INVENTORY_NAMES[sessionKey];
         if (!names) {
@@ -98,14 +94,20 @@ function gameReducer(state, action) {
       };
     }
 
+    // Centralized submit: decides next screen based on activeSession
+    case 'SUBMIT_INFO': {
+      const newUser = action.payload;
+      // If an hourly draw is active, go directly to spinning (skip processing)
+      const nextScreen = state.activeSession ? 'spinning' : 'processing';
+      return { ...state, user: newUser, screen: nextScreen };
+    }
+
     case 'SET_PRIZE': {
-      // action.payload is the prize object chosen by SpinScreen
       const awardedPrize = action.payload;
       let updatedDecks = { ...state.sessionDecks };
 
       if (state.activeSession && state.sessionDecks[state.activeSession]?.length > 0) {
         const deck = [...state.sessionDecks[state.activeSession]];
-        // Remove the prize with matching id
         const index = deck.findIndex(p => p.id === awardedPrize.id);
         if (index !== -1) {
           deck.splice(index, 1);
@@ -130,10 +132,10 @@ function gameReducer(state, action) {
         id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : Math.random().toString(36).substring(2, 9),
         timestamp: new Date().toISOString(),
         session: state.activeSession || 'General',
-        name: state.user.name,
-        email: state.user.email,
-        mobile: state.user.mobile,        // keep original
-        phone: state.user.mobile,         // add phone for CSV compatibility
+        fullName: state.user.fullName || state.user.name || '',
+        phone: state.user.phone || '',
+        receipt: state.user.receipt || '',
+        idNumber: state.user.idNumber || '',
         prize: state.prize.name
       };
       const updatedLeads = [...state.leads, newLead];
@@ -155,6 +157,31 @@ function gameReducer(state, action) {
       };
     }
 
+    case 'REGISTER_LEAD': {
+      if (!state.user) return state;
+      const newLead = {
+        id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : Math.random().toString(36).substring(2, 9),
+        timestamp: new Date().toISOString(),
+        session: state.activeSession || 'General',
+        fullName: state.user.fullName || state.user.name || '',
+        phone: state.user.phone || '',
+        receipt: state.user.receipt || '',
+        idNumber: state.user.idNumber || '',
+        prize: 'Registered for Event'
+      };
+      const updatedLeads = [...state.leads, newLead];
+      try {
+        localStorage.setItem('spin_to_win_leads', JSON.stringify(updatedLeads));
+      } catch (e) {}
+      return {
+        ...state,
+        screen: 'attract',
+        user: null,
+        prize: null,
+        leads: updatedLeads
+      };
+    }
+
     case 'CLEAR_LEADS':
       try {
         localStorage.removeItem('spin_to_win_leads');
@@ -167,6 +194,16 @@ function gameReducer(state, action) {
       } catch (e) {}
       return { ...state, sessionDecks: {}, activeSession: null };
 
+	    case 'IDLE_RESET':
+      // Return to attract and forget any half‑filled registration
+      return {
+        ...state,
+        screen: 'attract',
+        user: null,
+        prize: null,
+        activeSession: null,
+      };
+
     default:
       return state;
   }
@@ -177,17 +214,19 @@ export function GameProvider({ children }) {
 
   const exportCSV = () => {
     if (state.leads.length === 0) return;
-    const headers = ['ID', 'Timestamp', 'Session', 'Name', 'Email', 'Phone', 'Prize'];
+    const headers = ['ID', 'Timestamp', 'Session', 'Full Name', 'Phone', 'Receipt', 'ID Number', 'Prize'];
     const rows = state.leads.map(lead => [
-      lead.id,
-      lead.timestamp,
+      lead.id || '',
+      lead.timestamp || '',
       `"${lead.session || 'General'}"`,
-      `"${lead.name.replace(/"/g, '""')}"`,
-      lead.email,
-      `"${lead.phone || lead.mobile || ''}"`,  // fallback to mobile
-      `"${lead.prize}"`
+      `"${(lead.fullName || lead.name || '').replace(/"/g, '""')}"`,
+      `"${(lead.phone || '').replace(/"/g, '""')}"`,
+      `"${(lead.receipt || '').replace(/"/g, '""')}"`,
+      `"${(lead.idNumber || '').replace(/"/g, '""')}"`,
+      `"${(lead.prize || '').replace(/"/g, '""')}"`
     ]);
-    const csvContent = [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const nl = '\n';
+    const csvContent = [headers.join(','), ...rows.map(e => e.join(','))].join(nl);
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');

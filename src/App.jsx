@@ -4,16 +4,16 @@ import { GameProvider, useGame } from './context/GameContext';
 import Layout from './components/Layout';
 import AttractScreen from './components/AttractScreen';
 import RegisterScreen from './components/RegisterScreen';
+import ProcessingScreen from './components/ProcessingScreen';
 import SpinScreen from './components/SpinScreen';
 import WinnerScreen from './components/WinnerScreen';
 import { Lock, X, Shield, FileSpreadsheet, Play, RotateCcw, Clock } from 'lucide-react';
+import { useIdleTimer } from './hooks/useIdleTimer';
 
-// Transition screen when an usher triggers an hour
+// ----- Loading Session Screen (unchanged) -----
 function LoadingSessionScreen({ session, onComplete }) {
   useEffect(() => {
-    const timer = setTimeout(() => {
-      onComplete();
-    }, 2500);
+    const timer = setTimeout(() => onComplete(), 2500);
     return () => clearTimeout(timer);
   }, [onComplete]);
 
@@ -41,10 +41,11 @@ function LoadingSessionScreen({ session, onComplete }) {
   );
 }
 
+// ----- Secret Admin Button (unchanged, used as is) -----
 function SecretAdminButton({ onExport, leadCount }) {
   const { state, dispatch } = useGame();
   const [isOpen, setIsOpen] = useState(false);
-  const [currentScreen, setCurrentScreen] = useState('password'); // 'password' | 'admin'
+  const [currentScreen, setCurrentScreen] = useState('password');
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
   const taps = useRef(0);
@@ -112,7 +113,6 @@ function SecretAdminButton({ onExport, leadCount }) {
   return (
     <>
       <div className="fixed top-0 right-0 w-[80px] h-[80px] z-[9999]" onClick={handleTap} />
-
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -126,131 +126,98 @@ function SecretAdminButton({ onExport, leadCount }) {
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="relative w-full max-w-[400px] bg-white/95 border border-red-500/25 rounded-[2.5rem] p-8 shadow-2xl shadow-red-500/5 overflow-hidden flex flex-col items-center max-h-[90vh] overflow-y-auto"
+              className="relative w-full max-w-[420px] bg-white/95 border border-red-500/25 rounded-[3rem] p-8 shadow-2xl shadow-red-500/5 overflow-hidden flex flex-col items-center max-h-[90vh] overflow-y-auto"
             >
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-red-500/5 blur-3xl pointer-events-none" />
-
-              <button 
+              <button
                 onClick={closeAdmin}
-                className="absolute top-6 right-6 text-gray-500 hover:text-red-400 p-1.5 rounded-full border border-gray-300 hover:border-red-500/30 bg-white/50 transition-all duration-200"
+                className="absolute top-6 right-6 text-gray-500 hover:text-red-400 p-2 rounded-full border border-gray-300 hover:border-red-500/30 bg-white/50 transition-all duration-200"
               >
-                <X className="w-5 h-5" />
+                <X className="w-6 h-6" />
               </button>
 
               <AnimatePresence mode="wait">
                 {currentScreen === 'password' ? (
-                  <motion.div
-                    key="password-screen"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: 20 }}
-                    className="w-full flex flex-col items-center"
-                  >
-                    <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-400/25 flex items-center justify-center mb-5">
-                      <Lock className="w-7 h-7 text-red-300 animate-pulse" />
+                  <motion.div key="password-screen" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="w-full flex flex-col items-center">
+                    <div className="w-20 h-20 rounded-full bg-red-500/10 border border-red-400/25 flex items-center justify-center mb-5">
+                      <Lock className="w-9 h-9 text-red-300 animate-pulse" />
                     </div>
-                    <h3 className="text-xl font-serif text-red-200 tracking-[0.2em] uppercase text-center">Security Portal</h3>
-                    <p className="text-xs text-gray-500 tracking-wider uppercase mt-2 text-center">Authorized Access Only</p>
-
-                    <div className="my-6 w-full flex flex-col items-center gap-2">
-                      <div className="h-14 w-full bg-white/60 rounded-2xl border border-gray-300 flex items-center justify-center tracking-[0.5em] text-2xl text-red-400 font-mono">
-                        {pin ? 'ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢'.repeat(pin.length) : <span className="text-gray-700 text-sm tracking-widest font-sans uppercase">Enter PIN</span>}
+                    <h3 className="text-2xl font-serif text-red-200 tracking-[0.2em] uppercase text-center">Security Portal</h3>
+                    <p className="text-sm text-gray-500 tracking-wider uppercase mt-2 text-center">Authorized Access Only</p>
+                    <div className="my-8 w-full flex flex-col items-center gap-3">
+                      <div className="h-16 w-full bg-white/60 rounded-2xl border-2 border-gray-300 flex items-center justify-center tracking-[0.5em] text-3xl text-red-400 font-mono">
+                        {pin ? '●'.repeat(pin.length) : <span className="text-gray-700 text-base tracking-widest font-sans uppercase">Enter PIN</span>}
                       </div>
                       {error && (
-                        <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-red-400 text-xs font-semibold uppercase tracking-wider text-center">
-                          {error}
-                        </motion.p>
+                        <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-red-400 text-sm font-semibold uppercase tracking-wider text-center">{error}</motion.p>
                       )}
                     </div>
-
-                    <div className="grid grid-cols-3 gap-3 w-full mb-2">
+                    <div className="grid grid-cols-3 gap-4 w-full mb-2">
                       {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                        <button key={num} onClick={() => handleNumberPress(num.toString())} className="h-14 rounded-xl bg-white/40 border border-gray-300/80 hover:border-red-500/40 text-gray-300 font-medium text-xl flex items-center justify-center active:scale-95 transition-all duration-150">
+                        <button key={num} onClick={() => handleNumberPress(num.toString())} className="h-16 rounded-2xl bg-white/40 border-2 border-gray-300/80 hover:border-red-500/40 text-gray-700 font-bold text-2xl flex items-center justify-center active:scale-95 transition-all duration-150">
                           {num}
                         </button>
                       ))}
-                      <button onClick={handleBackspace} className="h-14 rounded-xl bg-white/40 border border-gray-300/80 hover:border-red-500/40 text-gray-500 hover:text-red-400 text-sm font-semibold flex items-center justify-center active:scale-95 transition-all duration-150 uppercase tracking-wider">
-                        Del
-                      </button>
-                      <button onClick={() => handleNumberPress('0')} className="h-14 rounded-xl bg-white/40 border border-gray-300/80 hover:border-red-500/40 text-gray-300 font-medium text-xl flex items-center justify-center active:scale-95 transition-all duration-150">
-                        0
-                      </button>
-                      <button onClick={handlePinSubmit} className="h-14 rounded-xl bg-red-500 text-black font-bold text-sm flex items-center justify-center active:scale-95 hover:bg-red-400 transition-all duration-150 uppercase tracking-widest">
-                        Enter
-                      </button>
+                      <button onClick={handleBackspace} className="h-16 rounded-2xl bg-white/40 border-2 border-gray-300/80 hover:border-red-500/40 text-gray-500 hover:text-red-400 text-base font-semibold flex items-center justify-center active:scale-95 transition-all duration-150 uppercase tracking-wider">Del</button>
+                      <button onClick={() => handleNumberPress('0')} className="h-16 rounded-2xl bg-white/40 border-2 border-gray-300/80 hover:border-red-500/40 text-gray-700 font-bold text-2xl flex items-center justify-center active:scale-95 transition-all duration-150">0</button>
+                      <button onClick={handlePinSubmit} className="h-16 rounded-2xl bg-red-500 text-white font-bold text-lg flex items-center justify-center active:scale-95 hover:bg-red-400 transition-all duration-150 uppercase tracking-widest">Enter</button>
                     </div>
                   </motion.div>
                 ) : (
-                  <motion.div
-                    key="admin-screen"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="w-full flex flex-col items-center"
-                  >
-                    <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-400/25 flex items-center justify-center mb-4">
-                      <Shield className="w-7 h-7 text-red-300" />
+                  <motion.div key="admin-screen" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="w-full flex flex-col items-center">
+                    <div className="w-20 h-20 rounded-full bg-red-500/10 border border-red-400/25 flex items-center justify-center mb-4">
+                      <Shield className="w-9 h-9 text-red-300" />
                     </div>
-                    <h3 className="text-xl font-serif text-red-200 tracking-[0.2em] uppercase text-center">Event Console</h3>
-                    <p className="text-xs text-gray-500 tracking-wider uppercase mt-1 text-center">Raffle & Inventory Control</p>
-
-                    {/* Hourly Draw Launch Buttons */}
-                    <div className="w-full my-6 space-y-2.5">
-                      <p className="text-[11px] text-red-400/80 tracking-widest uppercase font-semibold mb-2 text-center">Launch Hourly Live Draw</p>
+                    <h3 className="text-2xl font-serif text-red-200 tracking-[0.2em] uppercase text-center">Event Console</h3>
+                    <p className="text-sm text-gray-500 tracking-wider uppercase mt-1 text-center">Raffle & Inventory Control</p>
+                    <div className="w-full my-8 space-y-4">
+                      <p className="text-sm text-red-400/80 tracking-widest uppercase font-semibold mb-3 text-center">Launch Hourly Live Draw</p>
                       {sessions.map((s) => {
                         const deck = state.sessionDecks[s.key];
-                        const remaining = deck ? deck.length : 8; // if no deck yet, assume full
+                        const remaining = deck ? deck.length : 8;
                         const isExhausted = deck && deck.length === 0;
-
                         return (
                           <button
                             key={s.key}
                             onClick={() => startHourlyDraw(s.key)}
                             disabled={isExhausted}
-                            className={`w-full py-3.5 px-5 rounded-2xl font-bold uppercase tracking-wider text-xs flex items-center justify-between border transition-all duration-200 ${
-                              isExhausted 
-                                ? 'bg-white border-gray-300 text-gray-600 cursor-not-allowed'
-                                : 'bg-gradient-to-r from-gray-900 via-gray-900 to-red-950/40 hover:to-red-900/60 border-red-500/30 text-red-200 active:scale-98 shadow-md'
+                            className={`w-full py-5 px-6 rounded-2xl font-bold uppercase tracking-wider text-base flex items-center justify-between border-2 transition-all duration-200 ${
+                              isExhausted
+                                ? 'bg-gray-50 border-gray-300 text-gray-500 cursor-not-allowed'
+                                : 'bg-gradient-to-r from-gray-900 via-gray-900 to-red-950/40 hover:to-red-900/60 border-red-500/40 text-red-200 active:scale-[0.98] shadow-lg'
                             }`}
                           >
-                            <span className="flex items-center gap-2">
-                              <Play className="w-3.5 h-3.5 text-red-400 fill-red-400" />
+                            <span className="flex items-center gap-3">
+                              <Play className="w-5 h-5 text-red-400 fill-red-400" />
                               {s.label}
                             </span>
-                            <span className={`text-[10px] px-2.5 py-1 rounded-full ${isExhausted ? 'bg-white text-gray-600' : 'bg-red-500/20 text-red-300 border border-red-500/30'}`}>
-                              {isExhausted ? 'Completed' : `${remaining} Left`}
+                            <span className={`text-sm px-3 py-1.5 rounded-full font-semibold ${
+                              isExhausted ? 'bg-gray-100 text-gray-600' : 'bg-red-500/20 text-red-300 border border-red-500/30'
+                            }`}>
+                              {isExhausted ? 'Completed' : remaining + ' Left'}
                             </span>
                           </button>
                         );
                       })}
                     </div>
-
-                    {/* Stats & Actions */}
-                    <div className="space-y-3 w-full border-t border-gray-300 pt-4">
+                    <div className="space-y-4 w-full border-t border-gray-300 pt-6">
                       <motion.button
                         onClick={() => { onExport(); }}
                         disabled={leadCount === 0}
-                        className={`w-full py-3.5 rounded-full font-bold uppercase tracking-[0.2em] text-xs flex items-center justify-center gap-2 border transition-all duration-300 ${
-                          leadCount > 0 
-                            ? 'bg-gradient-to-r from-red-500 to-red-700 text-black border-transparent shadow-lg shadow-red-600/15 active:scale-95' 
-                            : 'bg-white text-gray-600 border-gray-300 cursor-not-allowed'
+                        className={`w-full py-5 rounded-2xl font-bold uppercase tracking-[0.2em] text-base flex items-center justify-center gap-3 border-2 transition-all duration-300 ${
+                          leadCount > 0
+                            ? 'bg-gradient-to-r from-red-500 to-red-700 text-white border-transparent shadow-lg shadow-red-600/15 active:scale-95'
+                            : 'bg-gray-50 text-gray-500 border-gray-300 cursor-not-allowed'
                         }`}
                       >
-                        <FileSpreadsheet className="w-4 h-4" strokeWidth={1.5} />
+                        <FileSpreadsheet className="w-5 h-5" strokeWidth={1.5} />
                         Export CSV ({leadCount})
                       </motion.button>
-                      
-                      <div className="flex gap-2">
-                        <button
-                          onClick={resetDecks}
-                          className="flex-1 py-3 rounded-full font-semibold uppercase tracking-wider text-[10px] border border-gray-300 text-gray-500 hover:border-red-500/40 hover:text-red-400 transition-all flex items-center justify-center gap-1"
-                        >
-                          <RotateCcw className="w-3 h-3" /> Reset Decks
+                      <div className="flex gap-3">
+                        <button onClick={resetDecks} className="flex-1 py-4 rounded-2xl font-semibold uppercase tracking-wider text-sm border-2 border-gray-300 text-gray-600 hover:border-red-500/40 hover:text-red-400 transition-all flex items-center justify-center gap-2">
+                          <RotateCcw className="w-4 h-4" /> Reset Decks
                         </button>
-                        <button
-                          onClick={closeAdmin}
-                          className="flex-1 py-3 rounded-full font-semibold uppercase tracking-wider text-[10px] border border-gray-300 text-gray-400 hover:bg-white/40 hover:text-black transition-all"
-                        >
+                        <button onClick={closeAdmin} className="flex-1 py-4 rounded-2xl font-semibold uppercase tracking-wider text-sm border-2 border-gray-300 text-gray-500 hover:bg-gray-50 hover:text-black transition-all">
                           Exit Console
                         </button>
                       </div>
@@ -266,8 +233,15 @@ function SecretAdminButton({ onExport, leadCount }) {
   );
 }
 
+// ----- Router (with idle timer) -----
 function Router() {
   const { state, dispatch, exportCSV } = useGame();
+
+  const handleIdleReset = useCallback(() => {
+    dispatch({ type: 'IDLE_RESET' });
+  }, [dispatch]);
+
+  useIdleTimer(handleIdleReset, 60000); // 60 seconds
 
   return (
     <Layout>
@@ -284,7 +258,12 @@ function Router() {
         )}
         {state.screen === 'register' && (
           <motion.div key="register" className="absolute inset-0 z-10 flex items-center justify-center">
-            <RegisterScreen onSubmit={(user) => { dispatch({ type: 'SET_USER', payload: user }); dispatch({ type: 'GO', payload: 'spinning' }); }} />
+            <RegisterScreen onSubmit={(user) => dispatch({ type: 'SUBMIT_INFO', payload: user })} />
+          </motion.div>
+        )}
+        {state.screen === 'processing' && (
+          <motion.div key="processing" className="absolute inset-0 z-10 flex items-center justify-center">
+            <ProcessingScreen onComplete={() => dispatch({ type: 'REGISTER_LEAD' })} />
           </motion.div>
         )}
         {state.screen === 'spinning' && (
