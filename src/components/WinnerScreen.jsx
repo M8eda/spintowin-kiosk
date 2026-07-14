@@ -40,6 +40,9 @@ export default function WinnerScreen({ prize, onValidate }) {
       <motion.div className="text-center px-5 w-full max-w-[320px] relative z-10"
         initial={{ opacity: 0, scale: 0.88 }} animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+        role="status"
+        aria-live="polite"
+        aria-label={`Congratulations! You won ${prize.name}`}
       >
         <motion.div className="mb-8 inline-flex items-center justify-center w-28 h-28 rounded-full bg-red-500/10 border-2 border-red-400/25 shadow-[0_0_60px_rgba(220,38,38,0.2)]"
           animate={{ rotate: [0, 6, -6, 0], scale: [1, 1.05, 1] }}
@@ -67,6 +70,7 @@ export default function WinnerScreen({ prize, onValidate }) {
         <motion.button onClick={onValidate}
           className="bg-red-600 text-white px-14 py-5 rounded-full font-bold uppercase tracking-[0.35em] text-sm shadow-xl w-full"
           whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.96 }}
+          aria-label={`Validate ${prize.name} prize`}
         >
           Validate Prize
         </motion.button>

@@ -104,21 +104,24 @@ const textVariant = {
 export default function AttractScreen({ onTouch }) {
   return (
     <motion.div
-      className="relative h-full w-full flex flex-col items-center justify-between cursor-pointer overflow-hidden bg-white"
+      className="relative h-full w-full flex flex-col items-center justify-start cursor-pointer overflow-hidden bg-white pt-12"
       onClick={onTouch}
       initial="hidden"
       animate="visible"
       variants={containerVariants}
+      role="button"
+      aria-label="Enter the raffle draw - tap to begin"
+      tabIndex={0}
     >
       <FallingProducts />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-red-500/5 blur-[120px] pointer-events-none" />
 
       <div className="flex-1 flex flex-col items-center justify-center w-full max-w-sm px-4">
         <motion.div variants={logoVariant} className="w-full flex justify-center">
-          <img src="/logo.png" alt="Delmar & Attalla Pharmacies" className="w-[80vw] max-w-[320px] h-auto object-contain drop-shadow-sm" />
+          <img src="/logo.png" alt="Delmar & Attalla Pharmacies - Luxury beauty brand" className="w-[80vw] max-w-[320px] h-auto object-contain drop-shadow-sm" />
         </motion.div>
 
-        <motion.div className="w-16 h-1 bg-red-600 rounded-full mt-6" variants={dividerVariant} />
+        <motion.div className="w-16 h-1 bg-red-600 rounded-full mt-6" variants={dividerVariant} aria-hidden="true" />
 
         <motion.h1 className="text-3xl sm:text-4xl font-serif font-bold text-stone-900 text-center tracking-wide mt-6" variants={textVariant}>
           Exclusive Rewards
@@ -129,21 +132,21 @@ export default function AttractScreen({ onTouch }) {
         </motion.p>
       </div>
 
-      <div className="w-full flex flex-col items-center pb-36 px-6">
+      <div className="w-full flex flex-col items-center mt-auto pb-0 px-6 -mb-6">
         <motion.div className="relative w-full max-w-[320px]" variants={textVariant}>
-          <div className="relative py-5 rounded-2xl bg-red-600 text-white font-bold uppercase tracking-widest text-lg flex items-center justify-center gap-3 shadow-[0_8px_20px_rgba(220,38,38,0.3)] overflow-hidden">
+          <div className="relative py-5 rounded-2xl bg-red-600 text-white font-bold uppercase tracking-widest text-lg flex items-center justify-center gap-3 shadow-[0_8px_20px_rgba(220,38,38,0.3)] overflow-hidden" aria-label="Start button - begin raffle entry">
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <SonarRipples />
             </div>
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer pointer-events-none" />
-            <Sparkles className="w-5 h-5 relative z-10" />
+            <Sparkles className="w-5 h-5 relative z-10" aria-hidden="true" />
             <span className="relative z-10 font-sans">Start Now</span>
           </div>
         </motion.div>
 
         <motion.div className="flex items-center gap-3 text-red-600 mt-6" variants={textVariant}>
-          <Phone className="w-8 h-8" strokeWidth={1.5} />
-          <span className="text-4xl font-bold font-sans tracking-wide">19955</span>
+          <Phone className="w-8 h-8" strokeWidth={1.5} aria-hidden="true" />
+          <span className="text-4xl font-bold font-sans tracking-wide" aria-label="Support phone number: 19955">19955</span>
         </motion.div>
       </div>
     </motion.div>

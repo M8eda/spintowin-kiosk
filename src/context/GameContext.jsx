@@ -41,17 +41,13 @@ const initialState = {
 };
 
 const getInitialState = () => {
-  try {
-    const savedLeads = localStorage.getItem('spin_to_win_leads');
-    const savedDecks = localStorage.getItem('spin_to_win_decks');
-    return {
-      ...initialState,
-      leads: savedLeads ? JSON.parse(savedLeads) : [],
-      sessionDecks: savedDecks ? JSON.parse(savedDecks) : {}
-    };
-  } catch (e) {
-    return initialState;
-  }
+  const savedLeads = loadFromLocalStorage('spin_to_win_leads');
+  const savedDecks = loadFromLocalStorage('spin_to_win_decks');
+  return {
+    ...initialState,
+    leads: savedLeads || [],
+    sessionDecks: savedDecks || {}
+  };
 };
 
 function shuffleArray(array) {
@@ -61,6 +57,53 @@ function shuffleArray(array) {
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
+}
+
+/**
+ * Helper: Create a lead object from user data
+ * Ensures consistent lead structure across the app
+ */
+function createLead(user, prize, activeSession) {
+  return {
+    id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : Math.random().toString(36).substring(2, 9),
+    timestamp: new Date().toISOString(),
+    session: activeSession || 'General',
+    fullName: user?.fullName || user?.name || '',
+    phone: user?.phone || '',
+    receipt: user?.receipt || '',
+    idNumber: user?.idNumber || '',
+    prize: prize?.name || 'Registered for Event'
+  };
+}
+
+/**
+ * Helper: Safely save data to localStorage with error reporting
+ */
+function saveToLocalStorage(key, value) {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+    return { success: true };
+  } catch (error) {
+    if (error.name === 'QuotaExceededError') {
+      console.error(`Storage quota exceeded for key: ${key}`);
+      return { success: false, error: 'Storage quota exceeded' };
+    }
+    console.error(`Failed to save to localStorage:`, error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Helper: Safely read data from localStorage
+ */
+function loadFromLocalStorage(key) {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : null;
+  } catch (error) {
+    console.error(`Failed to load from localStorage (${key}):`, error);
+    return null;
+  }
 }
 
 function gameReducer(state, action) {
@@ -83,9 +126,7 @@ function gameReducer(state, action) {
         currentDeck = shuffleArray(prizeObjects);
       }
       const updatedDecks = { ...state.sessionDecks, [sessionKey]: currentDeck };
-      try {
-        localStorage.setItem('spin_to_win_decks', JSON.stringify(updatedDecks));
-      } catch (e) {}
+      saveToLocalStorage('spin_to_win_decks', updatedDecks);
       return {
         ...state,
         activeSession: sessionKey,
@@ -112,9 +153,7 @@ function gameReducer(state, action) {
         if (index !== -1) {
           deck.splice(index, 1);
           updatedDecks[state.activeSession] = deck;
-          try {
-            localStorage.setItem('spin_to_win_decks', JSON.stringify(updatedDecks));
-          } catch (e) {}
+          saveToLocalStorage('spin_to_win_decks', updatedDecks);
         }
       }
 
@@ -128,20 +167,9 @@ function gameReducer(state, action) {
 
     case 'SAVE_AND_RESET': {
       if (!state.user || !state.prize) return state;
-      const newLead = {
-        id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : Math.random().toString(36).substring(2, 9),
-        timestamp: new Date().toISOString(),
-        session: state.activeSession || 'General',
-        fullName: state.user.fullName || state.user.name || '',
-        phone: state.user.phone || '',
-        receipt: state.user.receipt || '',
-        idNumber: state.user.idNumber || '',
-        prize: state.prize.name
-      };
+      const newLead = createLead(state.user, state.prize, state.activeSession);
       const updatedLeads = [...state.leads, newLead];
-      try {
-        localStorage.setItem('spin_to_win_leads', JSON.stringify(updatedLeads));
-      } catch (e) {}
+      saveToLocalStorage('spin_to_win_leads', updatedLeads);
 
       const remainingInSession = state.activeSession ? state.sessionDecks[state.activeSession]?.length : 0;
       const nextScreen = (state.activeSession && remainingInSession > 0) ? 'register' : 'attract';
@@ -159,20 +187,9 @@ function gameReducer(state, action) {
 
     case 'REGISTER_LEAD': {
       if (!state.user) return state;
-      const newLead = {
-        id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : Math.random().toString(36).substring(2, 9),
-        timestamp: new Date().toISOString(),
-        session: state.activeSession || 'General',
-        fullName: state.user.fullName || state.user.name || '',
-        phone: state.user.phone || '',
-        receipt: state.user.receipt || '',
-        idNumber: state.user.idNumber || '',
-        prize: 'Registered for Event'
-      };
+      const newLead = createLead(state.user, null, state.activeSession);
       const updatedLeads = [...state.leads, newLead];
-      try {
-        localStorage.setItem('spin_to_win_leads', JSON.stringify(updatedLeads));
-      } catch (e) {}
+      saveToLocalStorage('spin_to_win_leads', updatedLeads);
       return {
         ...state,
         screen: 'attract',
@@ -183,9 +200,7 @@ function gameReducer(state, action) {
     }
 
     case 'CLEAR_LEADS':
-      try {
-        localStorage.removeItem('spin_to_win_leads');
-      } catch (e) {}
+      saveToLocalStorage('spin_to_win_leads', []);
       return { ...state, leads: [] };
 
     case 'RESET_ALL_DECKS':

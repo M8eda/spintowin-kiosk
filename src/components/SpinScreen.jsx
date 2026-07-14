@@ -286,7 +286,10 @@ export default function SpinScreen({ onComplete }) {
             ref={canvasRef}
             width={500}
             height={500}
-            className="w-full h-full rounded-full shadow-2xl"
+            className="w-full h-full rounded-full shadow-2xl cursor-pointer active:scale-95 transition-transform"
+            onClick={handleSpin}
+            role="img"
+            aria-label={isSpinning ? `Wheel spinning - ${progress}% complete` : 'Prize wheel - tap to spin'}
           />
         </div>
       </main>
@@ -295,7 +298,7 @@ export default function SpinScreen({ onComplete }) {
         <p className="text-xs text-stone-500 mb-2 text-center font-medium tracking-widest uppercase">
           {isSpinning ? 'Processing Reward...' : 'Tap anywhere to spin'}
         </p>
-        <div className="w-full h-2 rounded-full bg-stone-200/80 backdrop-blur-sm shadow-inner overflow-hidden bg-white/50 backdrop-blur-sm">
+        <div className="w-full h-2 rounded-full bg-stone-200/80 backdrop-blur-sm shadow-inner overflow-hidden bg-white/50 backdrop-blur-sm" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label={`Spin progress: ${progress}%`}>
           <div
             className="h-full bg-gradient-to-r from-red-600 to-red-800 rounded-full transition-all duration-200 ease-out shadow-[0_0_6px_rgba(220,38,38,0.5)]"
             style={{ width: `${progress}%` }}
