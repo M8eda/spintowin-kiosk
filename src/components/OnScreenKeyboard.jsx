@@ -1,86 +1,120 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Delete, ArrowRight } from 'lucide-react';
+import { X, Delete, CornerDownLeft, Type, Hash } from 'lucide-react';
 
-const KEYBOARD_LAYOUT = [
-  ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-  ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-  ['Z', 'X', 'C', 'V', 'B', 'N', 'M'],
+const FULL_KEYS = [
+  ['1','2','3','4','5','6','7','8','9','0'],
+  ['q','w','e','r','t','y','u','i','o','p'],
+  ['a','s','d','f','g','h','j','k','l'],
+  ['z','x','c','v','b','n','m'],
 ];
 
-export default function OnScreenKeyboard({ isOpen, value, onChar, onBackspace, onSubmit, onClose, fieldLabel }) {
-  if (!isOpen) return null;
+const NUM_KEYS = [
+  ['1','2','3'],
+  ['4','5','6'],
+  ['7','8','9'],
+  ['0'],
+];
+
+export default function OnScreenKeyboard({
+  isOpen,
+  value = '',
+  onChar,
+  onBackspace,
+  onSubmit,
+  onClose,
+  fieldLabel = '',
+  keyboardType = 'text',
+  onToggleKeyboard,
+}) {
+  const keys = keyboardType === 'number' ? NUM_KEYS : FULL_KEYS;
 
   return (
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
-          className="fixed bottom-0 left-0 right-0 z-[9000] bg-white/95 backdrop-blur-2xl border-t-2 border-red-500/25 rounded-t-[2rem] p-4 shadow-2xl shadow-red-500/10 max-h-[55vh] overflow-y-auto"
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+          className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-t border-gray-200 shadow-2xl px-3 pt-3 pb-safe select-none"
+          style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
         >
-          <div className="w-full">
-            {/* Field Label & Display */}
-            <div className="mb-4 flex flex-col items-center gap-2">
-              <p className="text-xs text-gray-500 tracking-widest uppercase font-semibold">{fieldLabel}</p>
-              <div className="h-12 w-full max-w-[600px] bg-white/60 rounded-lg border-2 border-gray-300 flex items-center justify-center text-base text-gray-700 font-semibold px-3 text-center overflow-hidden text-ellipsis" aria-live="polite">
-                {value || <span className="text-gray-400 text-xs tracking-widest uppercase">Enter text</span>}
-              </div>
-            </div>
-
-            {/* Keyboard */}
-            <div className="space-y-2">
-              {KEYBOARD_LAYOUT.map((row, rowIdx) => (
-                <div key={rowIdx} className="flex justify-center gap-1.5 px-2">
-                  {/* Left Padding for Center Rows */}
-                  {rowIdx > 0 && <div className="w-4" />}
-                  
-                  {row.map((char) => (
-                    <button
-                      key={char}
-                      onClick={() => onChar(char)}
-                      className="flex-1 min-h-10 max-w-[3rem] bg-white/40 border-2 border-gray-300/80 hover:border-red-500/40 hover:bg-white/60 text-gray-700 font-bold text-sm flex items-center justify-center active:scale-95 transition-all duration-150 rounded-md"
-                      aria-label={`Letter ${char}`}
-                    >
-                      {char}
-                    </button>
-                  ))}
-                </div>
-              ))}
-
-              {/* Bottom Row: Space, Backspace, Submit, Close */}
-              <div className="flex justify-center gap-1.5 mt-3 px-2">
+          {/* Top bar */}
+          <div className="flex items-center justify-between px-1 mb-2">
+            <button onClick={onClose} className="p-2 text-gray-500 hover:text-red-500">
+              <X className="w-6 h-6" />
+            </button>
+            <span className="text-sm font-medium text-gray-700 truncate mx-2 flex-1 text-center">
+              {fieldLabel}
+            </span>
+            <div className="flex items-center gap-1">
+              {onToggleKeyboard && (
                 <button
-                  onClick={() => onChar(' ')}
-                  className="flex-1 h-10 bg-white/40 border-2 border-gray-300/80 hover:border-red-500/40 hover:bg-white/60 text-gray-700 font-bold text-xs flex items-center justify-center active:scale-95 transition-all duration-150 rounded-md uppercase tracking-wider"
-                  aria-label="Space"
+                  onClick={onToggleKeyboard}
+                  className="p-2 text-gray-500 hover:text-red-500 rounded-lg"
+                  title={keyboardType === 'number' ? 'Switch to full keyboard' : 'Switch to digits only'}
                 >
-                  Space
+                  {keyboardType === 'number' ? <Type className="w-5 h-5" /> : <Hash className="w-5 h-5" />}
                 </button>
+              )}
+              <button onClick={onSubmit} className="p-2 text-red-500 hover:text-red-600">
+                <CornerDownLeft className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+
+          {/* Key rows */}
+          <div className="flex flex-col gap-1.5">
+            {keys.map((row, ri) => (
+              <div key={ri} className="flex justify-center gap-1.5">
+                {ri === keys.length - 1 && keyboardType === 'text' && (
+                  <button
+                    onClick={onBackspace}
+                    className="h-12 w-14 bg-gray-200 rounded-xl text-gray-700 font-bold flex items-center justify-center active:bg-gray-300"
+                  >
+                    <Delete className="w-5 h-5" />
+                  </button>
+                )}
+                {row.map(key => (
+                  <button
+                    key={key}
+                    onPointerDown={(e) => {
+                      e.preventDefault();
+                      onChar(key);
+                    }}
+                    className="h-12 flex-1 bg-white border border-gray-200 rounded-xl text-lg font-medium text-gray-900 active:bg-gray-100 transition-colors shadow-sm"
+                  >
+                    {key}
+                  </button>
+                ))}
+                {ri === keys.length - 1 && keyboardType === 'text' ? null : ri === keys.length - 1 && (
+                  <button
+                    onClick={onBackspace}
+                    className="h-12 w-14 bg-gray-200 rounded-xl text-gray-700 font-bold flex items-center justify-center active:bg-gray-300"
+                  >
+                    <Delete className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+            ))}
+
+            {/* Backspace + Submit row for number keyboard */}
+            {keyboardType === 'number' && (
+              <div className="flex justify-center gap-1.5 mt-1">
                 <button
                   onClick={onBackspace}
-                  aria-label="Delete last character"
-                  className="h-10 w-12 bg-white/40 border-2 border-gray-300/80 hover:border-red-500/40 hover:bg-white/60 text-gray-500 hover:text-red-400 flex items-center justify-center active:scale-95 transition-all duration-150 rounded-md"
+                  className="h-12 flex-1 bg-gray-200 rounded-xl text-gray-700 font-bold flex items-center justify-center active:bg-gray-300"
                 >
-                  <Delete className="w-4 h-4" />
+                  <Delete className="w-5 h-5" />
                 </button>
                 <button
                   onClick={onSubmit}
-                  className="h-10 px-4 bg-red-500 hover:bg-red-400 text-white font-bold text-xs flex items-center justify-center active:scale-95 transition-all duration-150 rounded-md uppercase tracking-wider gap-1.5"
-                  aria-label="Submit entry"
+                  className="h-12 flex-1 bg-red-500 rounded-xl text-white font-bold flex items-center justify-center active:bg-red-600"
                 >
-                  <span>Done</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={onClose}
-                  className="h-10 w-16 bg-white/40 border-2 border-gray-300/80 hover:border-red-500/40 hover:bg-white/60 text-gray-500 hover:text-red-400 font-bold text-xs flex items-center justify-center active:scale-95 transition-all duration-150 rounded-md uppercase tracking-wider"
-                  aria-label="Close keyboard"
-                >
-                  Close
+                  <CornerDownLeft className="w-5 h-5" />
                 </button>
               </div>
-            </div>
+            )}
           </div>
         </motion.div>
       )}

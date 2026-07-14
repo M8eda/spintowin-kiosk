@@ -18,6 +18,7 @@ export default function RegisterScreen({ onSubmit }) {
   const [focused, setFocused] = useState(null);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
   const [keyboardField, setKeyboardField] = useState(null);
+  const [keyboardType, setKeyboardType] = useState('text'); // 'text' | 'number'
 
   const inputRefs = useRef({});
   const tapCount = useRef(0);
@@ -71,12 +72,18 @@ export default function RegisterScreen({ onSubmit }) {
   const openField = (fieldKey) => {
     setFocused(fieldKey);
     setKeyboardField(fieldKey);
+    // Auto-select keyboard type: digits for phone & idNumber, otherwise full keyboard
+    setKeyboardType(fieldKey === 'phone' || fieldKey === 'idNumber' ? 'number' : 'text');
     setKeyboardOpen(true);
     // Lift the field above the keyboard
     setTimeout(() => {
       const el = inputRefs.current[fieldKey];
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 200);
+  };
+
+  const toggleKeyboard = () => {
+    setKeyboardType(prev => (prev === 'text' ? 'number' : 'text'));
   };
 
   const handleKeyboardChar = (char) => {
@@ -221,6 +228,8 @@ export default function RegisterScreen({ onSubmit }) {
         onSubmit={closeKeyboard}
         onClose={closeKeyboard}
         fieldLabel={FIELDS.find(f => f.key === keyboardField)?.placeholder || ''}
+        keyboardType={keyboardType}
+        onToggleKeyboard={toggleKeyboard}
       />
     </div>
   );
