@@ -61,18 +61,24 @@ function FallingProducts() {
   );
 }
 
+// 💥 Dynamic Cascading Triple Sonar Waves
 function SonarRipples() {
   return (
     <>
       <motion.div
-        className="absolute inset-0 rounded-full border-2 border-red-400/30"
-        animate={{ scale: [1, 2.5, 1], opacity: [0.6, 0, 0.6] }}
-        transition={{ duration: 3, repeat: Infinity, ease: 'easeOut' }}
+        className="absolute inset-0 rounded-2xl border-[4px] border-red-500/50 pointer-events-none"
+        animate={{ scale: [1, 1.8], opacity: [1, 0] }}
+        transition={{ duration: 1.6, repeat: Infinity, ease: 'easeOut' }}
       />
       <motion.div
-        className="absolute inset-0 rounded-full border border-red-400/20"
-        animate={{ scale: [1, 2, 1], opacity: [0.4, 0, 0.4] }}
-        transition={{ duration: 3, repeat: Infinity, ease: 'easeOut', delay: 0.5 }}
+        className="absolute inset-0 rounded-2xl border-[3px] border-red-400/40 pointer-events-none"
+        animate={{ scale: [1, 1.5], opacity: [0.8, 0] }}
+        transition={{ duration: 1.6, repeat: Infinity, ease: 'easeOut', delay: 0.4 }}
+      />
+      <motion.div
+        className="absolute inset-0 rounded-2xl border-2 border-red-300/30 pointer-events-none"
+        animate={{ scale: [1, 1.2], opacity: [0.6, 0] }}
+        transition={{ duration: 1.6, repeat: Infinity, ease: 'easeOut', delay: 0.8 }}
       />
     </>
   );
@@ -134,14 +140,74 @@ export default function AttractScreen({ onTouch }) {
 
       <div className="w-full flex flex-col items-center mt-auto pb-0 px-6 -mb-6">
         <motion.div className="relative w-full max-w-[320px]" variants={textVariant}>
-          <div className="relative py-5 rounded-2xl bg-red-600 text-white font-bold uppercase tracking-widest text-lg flex items-center justify-center gap-3 shadow-[0_8px_20px_rgba(220,38,38,0.3)] overflow-hidden" aria-label="Start button - begin raffle entry">
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <SonarRipples />
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer pointer-events-none" />
-            <Sparkles className="w-5 h-5 relative z-10" aria-hidden="true" />
-            <span className="relative z-10 font-sans">Start Now</span>
-          </div>
+          
+          {/* 🔥 Energetic High-Impact Kiosk Button */}
+          <motion.div 
+            className="relative w-full py-5 rounded-2xl bg-gradient-to-r from-red-600 via-red-500 to-red-600 text-white font-black uppercase tracking-[0.2em] text-xl flex items-center justify-center gap-3 overflow-hidden select-none border border-white/20" 
+            aria-label="Start button - begin raffle entry"
+            
+            // Heartbeat + Jiggle Choreography Loop
+            animate={{
+              // Rapid pulse, small rebound, brief pause, quick shake, repeat
+              scale: [1, 1.08, 0.96, 1.04, 1, 1, 1, 1],
+              rotate: [0, 0, 0, 0, 0, 1.5, -1.5, 0],
+              boxShadow: [
+                "0 0 15px rgba(239,68,68,0.4)",
+                "0 0 40px rgba(239,68,68,0.85)",
+                "0 0 15px rgba(239,68,68,0.4)",
+                "0 0 35px rgba(239,68,68,0.7)",
+                "0 0 15px rgba(239,68,68,0.4)",
+                "0 0 15px rgba(239,68,68,0.4)",
+                "0 0 15px rgba(239,68,68,0.4)",
+                "0 0 15px rgba(239,68,68,0.4)",
+              ]
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+            
+            whileHover={{ scale: 1.06 }}
+            whileTap={{ scale: 0.94 }}
+          >
+            {/* Rapidly Cascading Sonar Rings */}
+            <SonarRipples />
+
+            {/* High-speed White Sheen Shimmer */}
+            <motion.div 
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none"
+              initial={{ x: "-150%" }}
+              animate={{ x: "150%" }}
+              transition={{
+                repeat: Infinity,
+                repeatType: "loop",
+                duration: 1.6,
+                ease: "linear",
+                repeatDelay: 0.8
+              }}
+            />
+
+            {/* Hyper-active Sparkle Icon */}
+            <motion.div
+              animate={{ 
+                rotate: 360, 
+                scale: [1, 1.3, 1] 
+              }}
+              transition={{ 
+                rotate: { duration: 4, repeat: Infinity, ease: "linear" },
+                scale: { duration: 1, repeat: Infinity, ease: "easeInOut" }
+              }}
+              className="relative z-10 flex items-center"
+            >
+              <Sparkles className="w-6 h-6 text-yellow-300 drop-shadow-[0_0_8px_rgba(253,224,71,0.8)]" aria-hidden="true" />
+            </motion.div>
+
+            <span className="relative z-10 font-sans tracking-[0.2em] drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
+              Start Now
+            </span>
+          </motion.div>
+
         </motion.div>
 
         <motion.div className="flex items-center gap-3 text-red-600 mt-6" variants={textVariant}>
