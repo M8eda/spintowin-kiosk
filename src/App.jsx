@@ -50,7 +50,8 @@ function Router() {
     dispatch({ type: 'IDLE_RESET' });
   }, [dispatch]);
 
-  useIdleTimer(handleIdleReset, 60000); // 60 seconds
+  // Disable idle timer while an admin session is active
+  useIdleTimer(handleIdleReset, 60000, !state.activeSession);
 
   return (
     <Layout>
