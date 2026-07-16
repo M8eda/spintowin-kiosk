@@ -11,7 +11,7 @@ export const PRIZES = [
   { id: '8', name: 'Giveaway Item', color: '#795548', text: '#FFFFFF', emoji: '🎁', weight: 42 }
 ];
 
-const HOURLY_INVENTORY_NAMES = {
+export const HOURLY_INVENTORY_NAMES = {
   '7pm': ['0.5 g Gold Bar', 'Smart Earbuds', '1,000 Reward Points', '1,000 Reward Points', '3,000 Reward Points', '3,000 Reward Points', 'Giveaway Item', 'Giveaway Item'],
   '8pm': ['Gold Pound', 'Smartwatch', '0.25 g Gold Bar', '1,000 Reward Points', '1,000 Reward Points', '3,000 Reward Points', '3,000 Reward Points', 'Giveaway Item', 'Giveaway Item'],
   '9pm': ['0.25 g Gold Bar', '0.25 g Gold Bar', 'Smart Earbuds', '1,000 Reward Points', '1,000 Reward Points', '3,000 Reward Points', '3,000 Reward Points', 'Giveaway Item', 'Giveaway Item'],
@@ -113,27 +113,24 @@ function gameReducer(state, action) {
     case 'SET_USER':
       return { ...state, user: action.payload };
 
-    case 'START_SESSION': {
-      const sessionKey = action.payload;
-      let currentDeck = state.sessionDecks[sessionKey];
-      if (!currentDeck || currentDeck.length === 0) {
-        const names = HOURLY_INVENTORY_NAMES[sessionKey];
-        if (!names) {
-          console.error(`No inventory for ${sessionKey}`);
-          return state;
-        }
-        const prizeObjects = mapInventoryToPrizeObjects(names);
-        currentDeck = shuffleArray(prizeObjects);
-      }
-      const updatedDecks = { ...state.sessionDecks, [sessionKey]: currentDeck };
-      saveToLocalStorage('spin_to_win_decks', updatedDecks);
-      return {
-        ...state,
-        activeSession: sessionKey,
-        sessionDecks: updatedDecks,
-        screen: 'loading_session'
-      };
-    }
+case 'START_SESSION': {
+  const sessionKey = action.payload;
+  const names = HOURLY_INVENTORY_NAMES[sessionKey];
+  if (!names) {
+    console.error(`No inventory for ${sessionKey}`);
+    return state;
+  }
+  const prizeObjects = mapInventoryToPrizeObjects(names);
+  const freshDeck = shuffleArray(prizeObjects);
+  const updatedDecks = { ...state.sessionDecks, [sessionKey]: freshDeck };
+  saveToLocalStorage('spin_to_win_decks', updatedDecks);
+  return {
+    ...state,
+    activeSession: sessionKey,
+    sessionDecks: updatedDecks,
+    screen: 'loading_session'
+  };
+}
 
     // Centralized submit: decides next screen based on activeSession
     case 'SUBMIT_INFO': {
@@ -149,12 +146,10 @@ function gameReducer(state, action) {
 
       if (state.activeSession && state.sessionDecks[state.activeSession]?.length > 0) {
         const deck = [...state.sessionDecks[state.activeSession]];
-        const index = deck.findIndex(p => p.id === awardedPrize.id);
-        if (index !== -1) {
-          deck.splice(index, 1);
-          updatedDecks[state.activeSession] = deck;
-          saveToLocalStorage('spin_to_win_decks', updatedDecks);
-        }
+        // Since we always award deck[0] during a session, we can safely remove index 0
+        deck.splice(0, 1); 
+        updatedDecks[state.activeSession] = deck;
+        saveToLocalStorage('spin_to_win_decks', updatedDecks);
       }
 
       return {

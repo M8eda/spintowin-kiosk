@@ -287,7 +287,6 @@ export default function SpinScreen({ onComplete }) {
             width={500}
             height={500}
             className="w-full h-full rounded-full shadow-2xl cursor-pointer active:scale-95 transition-transform"
-            onClick={handleSpin}
             role="img"
             aria-label={isSpinning ? `Wheel spinning - ${progress}% complete` : 'Prize wheel - tap to spin'}
           />
