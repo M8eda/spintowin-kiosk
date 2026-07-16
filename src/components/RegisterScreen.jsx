@@ -18,7 +18,7 @@ export default function RegisterScreen({ onSubmit }) {
   const [focused, setFocused] = useState(null);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
   const [keyboardField, setKeyboardField] = useState(null);
-  const [keyboardType, setKeyboardType] = useState('text'); // 'text' | 'number'
+  const [keyboardType, setKeyboardType] = useState('text');
 
   const inputRefs = useRef({});
   const tapCount = useRef(0);
@@ -204,11 +204,25 @@ export default function RegisterScreen({ onSubmit }) {
 
               <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent my-2" />
 
+              {/* Submit Button with strong visible breathing idle animation */}
               <motion.button
                 type="submit"
                 className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:from-red-700 active:to-red-800 text-white font-bold uppercase tracking-widest py-4 px-6 rounded-2xl flex items-center justify-center gap-3 transition-all duration-200 shadow-xl shadow-red-600/20 text-lg sm:text-xl"
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
+                animate={{
+                  scale: [1, 1.04, 1],
+                  boxShadow: [
+                    '0 8px 25px rgba(220,38,38,0.25)',
+                    '0 8px 45px rgba(220,38,38,0.5)',
+                    '0 8px 25px rgba(220,38,38,0.25)',
+                  ],
+                }}
+                transition={{
+                  duration: 3,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.96 }}
               >
                 <Sparkles className="w-6 h-6" />
                 <span>Submit Info</span>
