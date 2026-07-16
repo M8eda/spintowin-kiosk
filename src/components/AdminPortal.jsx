@@ -278,7 +278,7 @@ export default function AdminPortal({ onExport, leadCount }) {
                             <span className={`text-xs px-3 py-1.5 rounded-full font-bold uppercase tracking-wider ${
                               isExhausted ? 'bg-gray-200 text-gray-500' : 'bg-white/15 text-red-300 border border-white/10'
                             }`}>
-                              {isExhausted ? 'Completed' : `${remaining} Left`}
+                              {isExhausted ? 'Completed' : remaining}
                             </span>
                           </button>
                         );
