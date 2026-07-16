@@ -319,7 +319,7 @@ export default function AdminPortal({ onExport, leadCount }) {
                           </p>
                           <input
                             type="password"
-                            placeholder="Enter PIN (1234)"
+                            placeholder="Enter PIN"
                             value={clearPassword}
                             onChange={(e) => { setClearPassword(e.target.value); setClearError(''); }}
                             className="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white text-center font-mono text-lg tracking-widest focus:outline-none focus:border-red-500"
