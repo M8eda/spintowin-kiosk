@@ -22,7 +22,7 @@ export default function AdminPortal({ onExport, leadCount }) {
   }, [currentScreen, isOpen]);
 
   const handlePinChange = (e) => {
-    setPin(e.target.value.slice(0, 8)); // max 8 digits
+    setPin(e.target.value.slice(0, 8));
     setError('');
   };
 
@@ -141,9 +141,8 @@ export default function AdminPortal({ onExport, leadCount }) {
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               className="relative w-full max-w-[460px] bg-white border border-gray-200 rounded-[2.5rem] p-6 sm:p-8 shadow-2xl overflow-hidden flex flex-col items-center max-h-[92vh] overflow-y-auto"
             >
-              {/* Top background glow decoration */}
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 bg-red-500/10 blur-3xl pointer-events-none" />
-              
+
               <button
                 onClick={closeAdmin}
                 aria-label="Close admin portal"
@@ -154,11 +153,11 @@ export default function AdminPortal({ onExport, leadCount }) {
 
               <AnimatePresence mode="wait">
                 {currentScreen === 'password' ? (
-                  <motion.div 
-                    key="password-screen" 
-                    initial={{ opacity: 0, x: -20 }} 
-                    animate={{ opacity: 1, x: 0 }} 
-                    exit={{ opacity: 0, x: 20 }} 
+                  <motion.div
+                    key="password-screen"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
                     className="w-full flex flex-col items-center mt-2"
                   >
                     <div className="w-20 h-20 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center mb-4 shadow-inner">
@@ -170,8 +169,7 @@ export default function AdminPortal({ onExport, leadCount }) {
                     <p className="text-xs font-semibold text-gray-400 tracking-widest uppercase mt-1 text-center">
                       Authorized Access Only
                     </p>
-                    
-                    {/* PIN display + hidden input for physical keyboard */}
+
                     <div className="my-6 w-full flex flex-col items-center gap-2">
                       <div className="relative h-16 w-full">
                         <div className="h-16 w-full bg-gray-50 rounded-2xl border-2 border-gray-200 flex items-center justify-center tracking-[0.5em] text-3xl text-gray-800 font-mono shadow-inner" aria-live="polite">
@@ -197,7 +195,6 @@ export default function AdminPortal({ onExport, leadCount }) {
                       )}
                     </div>
 
-                    {/* Touch Numpad */}
                     <div className="grid grid-cols-3 gap-3 w-full mb-2">
                       {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
                         <button
@@ -209,23 +206,23 @@ export default function AdminPortal({ onExport, leadCount }) {
                           {num}
                         </button>
                       ))}
-                      <button 
-                        onClick={handleBackspace} 
-                        aria-label="Delete last digit" 
+                      <button
+                        onClick={handleBackspace}
+                        aria-label="Delete last digit"
                         className="h-16 rounded-2xl bg-gray-50 hover:bg-red-50 border border-gray-200 hover:border-red-200 text-gray-500 hover:text-red-600 text-base font-bold flex items-center justify-center active:scale-[0.96] transition-all duration-150 uppercase tracking-wider shadow-sm"
                       >
                         Del
                       </button>
-                      <button 
-                        onClick={() => handleNumberPress('0')} 
-                        aria-label="Enter digit 0" 
+                      <button
+                        onClick={() => handleNumberPress('0')}
+                        aria-label="Enter digit 0"
                         className="h-16 rounded-2xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-800 font-bold text-2xl flex items-center justify-center active:scale-[0.96] transition-all duration-150 shadow-sm"
                       >
                         0
                       </button>
-                      <button 
-                        onClick={handlePinSubmit} 
-                        aria-label="Submit PIN" 
+                      <button
+                        onClick={handlePinSubmit}
+                        aria-label="Submit PIN"
                         className="h-16 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-bold text-base flex items-center justify-center active:scale-[0.96] transition-all duration-150 uppercase tracking-widest shadow-md shadow-red-600/20"
                       >
                         Enter
@@ -233,38 +230,35 @@ export default function AdminPortal({ onExport, leadCount }) {
                     </div>
                   </motion.div>
                 ) : (
-                  <motion.div 
-                    key="admin-screen" 
-                    initial={{ opacity: 0, x: 20 }} 
-                    animate={{ opacity: 1, x: 0 }} 
-                    exit={{ opacity: 0, x: -20 }} 
+                  <motion.div
+                    key="admin-screen"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
                     className="w-full flex flex-col items-center mt-2"
                   >
                     <div className="w-20 h-20 rounded-2xl bg-red-50 border border-red-100 flex items-center justify-center mb-3 shadow-inner">
                       <Shield className="w-9 h-9 text-red-600" aria-hidden="true" />
                     </div>
-                    
-                    {/* Fixed High-Contrast Title & Removed Subtitle */}
+
                     <h3 className="text-2xl font-black font-sans text-gray-900 tracking-wider uppercase text-center mb-6">
                       Event Console
                     </h3>
 
-                    {/* Section 1: Hourly Draw Buttons */}
+                    {/* Hourly Draw Buttons – no numbers */}
                     <div className="w-full space-y-3 mb-6">
                       <p className="text-xs text-gray-400 tracking-widest uppercase font-bold px-1">
                         Launch Live Draw
                       </p>
                       {sessions.map((s) => {
                         const deck = state.sessionDecks[s.key];
-                        const maxForSession = HOURLY_INVENTORY_NAMES[s.key]?.length || 8;
-                        const remaining = deck ? deck.length : maxForSession;
                         const isExhausted = deck && deck.length === 0;
                         return (
                           <button
                             key={s.key}
                             onClick={() => startHourlyDraw(s.key)}
                             disabled={isExhausted}
-                            aria-label={`Start ${s.label} (${remaining} prizes remaining)`}
+                            aria-label={`Start ${s.label}`}
                             className={`w-full py-4 px-5 rounded-2xl font-bold uppercase tracking-wider text-sm sm:text-base flex items-center justify-between border-2 transition-all duration-200 ${
                               isExhausted
                                 ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
@@ -275,17 +269,13 @@ export default function AdminPortal({ onExport, leadCount }) {
                               <Play className={`w-5 h-5 ${isExhausted ? 'text-gray-400 fill-gray-400' : 'text-red-500 fill-red-500'}`} aria-hidden="true" />
                               {s.label}
                             </span>
-                            <span className={`text-xs px-3 py-1.5 rounded-full font-bold uppercase tracking-wider ${
-                              isExhausted ? 'bg-gray-200 text-gray-500' : 'bg-white/15 text-red-300 border border-white/10'
-                            }`}>
-                              {isExhausted ? 'Completed' : remaining}
-                            </span>
+                            {/* badge removed completely */}
                           </button>
                         );
                       })}
                     </div>
 
-                    {/* Section 2: Data Management (Export & Clear Leads) */}
+                    {/* Data Management */}
                     <div className="w-full space-y-3 pt-6 border-t border-gray-200">
                       <p className="text-xs text-gray-400 tracking-widest uppercase font-bold px-1">
                         Data Management
@@ -304,7 +294,6 @@ export default function AdminPortal({ onExport, leadCount }) {
                         Export CSV ({leadCount})
                       </motion.button>
 
-                      {/* Touch-Friendly Clear All Leads Prompt */}
                       {!showClearPrompt ? (
                         <button
                           onClick={() => setShowClearPrompt(true)}
@@ -313,7 +302,7 @@ export default function AdminPortal({ onExport, leadCount }) {
                           <Trash2 className="w-4 h-4" /> Clear All Leads
                         </button>
                       ) : (
-                        <div className="p-4 bg-gray-50 border border-red-200 rounded-2xl space-y-3 w-full animate-fadeIn">
+                        <div className="p-4 bg-gray-50 border border-red-200 rounded-2xl space-y-3 w-full">
                           <p className="text-xs font-bold text-red-600 uppercase tracking-wider text-center">
                             Confirm Leads Deletion
                           </p>
@@ -344,7 +333,7 @@ export default function AdminPortal({ onExport, leadCount }) {
                       )}
                     </div>
 
-                    {/* Section 3: System Controls */}
+                    {/* System Controls */}
                     <div className="w-full pt-6 mt-6 border-t border-gray-200 flex gap-3">
                       <button
                         onClick={resetDecks}

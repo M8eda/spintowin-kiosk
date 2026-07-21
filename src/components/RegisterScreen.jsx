@@ -10,7 +10,7 @@ const FIELDS = [
   { key: 'idNumber', icon: CreditCard, placeholder: 'ID Number', type: 'text', inputMode: 'numeric' },
 ];
 
-const KEYBOARD_HEIGHT = 300;
+const KEYBOARD_HEIGHT = 380;   // taller keyboard, raised via bottom-12
 
 export default function RegisterScreen({ onSubmit }) {
   const [form, setForm] = useState({ fullName: '', phone: '', receipt: '', idNumber: '' });
@@ -129,7 +129,7 @@ export default function RegisterScreen({ onSubmit }) {
           className={`min-h-full w-full flex flex-col items-center px-5 transition-[padding,justify-content] duration-300 ${
             keyboardOpen ? 'justify-start pt-6' : 'justify-center py-6'
           }`}
-          style={{ paddingBottom: keyboardOpen ? KEYBOARD_HEIGHT + 24 : 24 }}
+          style={{ paddingBottom: keyboardOpen ? KEYBOARD_HEIGHT * 0.6 : 24 }}
         >
           <div className="w-full max-w-md">
             {/* Title */}
@@ -204,7 +204,6 @@ export default function RegisterScreen({ onSubmit }) {
 
               <div className="h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent my-2" />
 
-              {/* Submit Button with strong visible breathing idle animation */}
               <motion.button
                 type="submit"
                 className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 active:from-red-700 active:to-red-800 text-white font-bold uppercase tracking-widest py-4 px-6 rounded-2xl flex items-center justify-center gap-3 transition-all duration-200 shadow-xl shadow-red-600/20 text-lg sm:text-xl"
