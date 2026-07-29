@@ -1,10 +1,11 @@
+// src/components/AdminPortal.jsx
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useGame, HOURLY_INVENTORY_NAMES } from '../context/GameContext';
-import { Lock, X, Shield, FileSpreadsheet, Play, RotateCcw, Trash2 } from 'lucide-react';
+import { useGame } from '../context/GameContext';
+import { Lock, X, Shield, FileSpreadsheet, Play, Trash2 } from 'lucide-react';
 
 export default function AdminPortal({ onExport, leadCount }) {
-  const { state, dispatch } = useGame();
+  const { dispatch } = useGame();
   const [isOpen, setIsOpen] = useState(false);
   const [currentScreen, setCurrentScreen] = useState('password');
   const [pin, setPin] = useState('');
@@ -12,7 +13,6 @@ export default function AdminPortal({ onExport, leadCount }) {
   const taps = useRef(0);
   const timer = useRef(null);
 
-  // --- Physical keyboard capture for PIN screen ---
   const pinInputRef = useRef(null);
 
   useEffect(() => {
@@ -33,7 +33,6 @@ export default function AdminPortal({ onExport, leadCount }) {
     }
   };
 
-  // --- Clear Leads sub-state ---
   const [showClearPrompt, setShowClearPrompt] = useState(false);
   const [clearPassword, setClearPassword] = useState('');
   const [clearError, setClearError] = useState('');
@@ -50,7 +49,6 @@ export default function AdminPortal({ onExport, leadCount }) {
     }
   };
 
-  // --- Triple-tap detection ---
   const handleTap = useCallback(() => {
     taps.current += 1;
     if (taps.current >= 3) {
@@ -96,23 +94,10 @@ export default function AdminPortal({ onExport, leadCount }) {
     }
   };
 
-  const startHourlyDraw = (hourKey) => {
-    dispatch({ type: 'START_SESSION', payload: hourKey });
+  const startSession = () => {
+    dispatch({ type: 'START_SESSION' }); // always creates a fresh 23‑prize pool
     closeAdmin();
   };
-
-  const resetDecks = () => {
-    if (window.confirm('Are you sure you want to reset all hourly draw decks back to their original prizes?')) {
-      dispatch({ type: 'RESET_ALL_DECKS' });
-    }
-  };
-
-  const sessions = [
-    { label: 'Session 1', key: '7pm' },
-    { label: 'Session 2', key: '8pm' },
-    { label: 'Session 3', key: '9pm' },
-    { label: 'Session 4', key: '10pm' },
-  ];
 
   return (
     <>
@@ -245,34 +230,18 @@ export default function AdminPortal({ onExport, leadCount }) {
                       Event Console
                     </h3>
 
-                    {/* Hourly Draw Buttons – no numbers */}
+                    {/* Single session control – always starts a fresh 23‑prize pool */}
                     <div className="w-full space-y-3 mb-6">
                       <p className="text-xs text-gray-400 tracking-widest uppercase font-bold px-1">
-                        Launch Live Draw
+                        Spin Session
                       </p>
-                      {sessions.map((s) => {
-                        const deck = state.sessionDecks[s.key];
-                        const isExhausted = deck && deck.length === 0;
-                        return (
-                          <button
-                            key={s.key}
-                            onClick={() => startHourlyDraw(s.key)}
-                            disabled={isExhausted}
-                            aria-label={`Start ${s.label}`}
-                            className={`w-full py-4 px-5 rounded-2xl font-bold uppercase tracking-wider text-sm sm:text-base flex items-center justify-between border-2 transition-all duration-200 ${
-                              isExhausted
-                                ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
-                                : 'bg-gray-900 hover:bg-black border-transparent text-white active:scale-[0.98] shadow-md hover:shadow-lg'
-                            }`}
-                          >
-                            <span className="flex items-center gap-3">
-                              <Play className={`w-5 h-5 ${isExhausted ? 'text-gray-400 fill-gray-400' : 'text-red-500 fill-red-500'}`} aria-hidden="true" />
-                              {s.label}
-                            </span>
-                            {/* badge removed completely */}
-                          </button>
-                        );
-                      })}
+                      <button
+                        onClick={startSession}
+                        className="w-full py-4 px-5 rounded-2xl font-bold uppercase tracking-wider text-sm bg-gray-900 hover:bg-black text-white flex items-center justify-center gap-3 border-2 border-transparent active:scale-[0.98] shadow-md"
+                      >
+                        <Play className="w-5 h-5 text-red-500 fill-red-500" />
+                        Start Spin Session
+                      </button>
                     </div>
 
                     {/* Data Management */}
@@ -290,7 +259,7 @@ export default function AdminPortal({ onExport, leadCount }) {
                             : 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed'
                         }`}
                       >
-                        <FileSpreadsheet className="w-5 h-5" strokeWidth={2} aria-hidden="true" />
+                        <FileSpreadsheet className="w-5 h-5" strokeWidth={2} />
                         Export CSV ({leadCount})
                       </motion.button>
 
@@ -333,18 +302,10 @@ export default function AdminPortal({ onExport, leadCount }) {
                       )}
                     </div>
 
-                    {/* System Controls */}
+                    {/* Exit */}
                     <div className="w-full pt-6 mt-6 border-t border-gray-200 flex gap-3">
                       <button
-                        onClick={resetDecks}
-                        aria-label="Reset all hourly draw decks"
-                        className="flex-1 py-4 rounded-2xl font-bold uppercase tracking-wider text-xs border-2 border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
-                      >
-                        <RotateCcw className="w-4 h-4" aria-hidden="true" /> Reset Decks
-                      </button>
-                      <button
                         onClick={closeAdmin}
-                        aria-label="Exit admin console"
                         className="flex-1 py-4 rounded-2xl font-bold uppercase tracking-wider text-xs bg-gray-100 hover:bg-gray-200 text-gray-800 active:scale-[0.98] transition-all text-center"
                       >
                         Exit Console
