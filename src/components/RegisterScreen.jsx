@@ -12,7 +12,7 @@ const FIELDS = [
 
 const KEYBOARD_HEIGHT = 380;   // taller keyboard, raised via bottom-12
 
-export default function RegisterScreen({ onSubmit }) {
+export default function RegisterScreen({ onSubmit, containerRef }) {
   const [form, setForm] = useState({ fullName: '', phone: '', receipt: '', idNumber: '' });
   const [errors, setErrors] = useState({});
   const [focused, setFocused] = useState(null);
@@ -243,6 +243,7 @@ export default function RegisterScreen({ onSubmit }) {
         fieldLabel={FIELDS.find(f => f.key === keyboardField)?.placeholder || ''}
         keyboardType={keyboardType}
         onToggleKeyboard={toggleKeyboard}
+        containerRef={containerRef}
       />
     </div>
   );

@@ -26,6 +26,7 @@ export default function OnScreenKeyboard({
   fieldLabel = '',
   keyboardType = 'text',
   onToggleKeyboard,
+  containerRef, // new prop for drag constraint reference
 }) {
   const keys = keyboardType === 'number' ? NUM_KEYS : FULL_KEYS;
   const dragControls = useDragControls();
@@ -38,18 +39,17 @@ export default function OnScreenKeyboard({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 40 }}
           transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-          
-          /* --- Native Framer Motion Drag Configuration --- */
+
           drag
           dragControls={dragControls}
-          dragListener={false} /* Only trigger drag from the handle */
+          dragListener={false}
           dragMomentum={false}
           dragElastic={0.1}
-          dragConstraints={{ top: -600, bottom: 200, left: -300, right: 300 }} /* Keeps keyboard on-screen */
-          
+          dragConstraints={containerRef ?? undefined} // use the passed ref as constraints
+
           className="fixed z-50 bg-white/95 backdrop-blur-xl border border-gray-200 shadow-2xl px-4 pt-3 select-none rounded-2xl left-1/2 -translate-x-1/2"
           style={{
-            bottom: '80px', /* Positioned comfortably higher for kiosk ergonomics */
+            bottom: '80px',
             width: 'calc(100% - 2rem)',
             maxWidth: 520,
             paddingBottom: 'max(16px, env(safe-area-inset-bottom))',

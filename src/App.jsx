@@ -11,8 +11,8 @@ import AdminPortal from './components/AdminPortal';
 import { Clock } from 'lucide-react';
 import { useIdleTimer } from './hooks/useIdleTimer';
 
-// ----- Loading Session Screen (unchanged) -----
-function LoadingSessionScreen({ session, onComplete }) {
+// ----- Loading Session Screen (updated) -----
+function LoadingSessionScreen({ onComplete }) {
   useEffect(() => {
     const timer = setTimeout(() => onComplete(), 2500);
     return () => clearTimeout(timer);
@@ -32,7 +32,7 @@ function LoadingSessionScreen({ session, onComplete }) {
         </div>
         <h2 className="text-sm font-sans tracking-[0.4em] text-gray-400 uppercase mb-2">Live Raffle Draw</h2>
         <h1 className="text-5xl font-serif font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-200 via-red-400 to-red-500 mb-6">
-          {session.toUpperCase()} SESSION
+          LUCKY SPIN SESSION
         </h1>
         <div className="w-16 h-1 bg-red-500/40 rounded-full mb-6" />
         <p className="text-lg font-serif text-red-100 tracking-wider">Let's Begin!</p>
@@ -42,52 +42,57 @@ function LoadingSessionScreen({ session, onComplete }) {
   );
 }
 
-// ----- Router (with idle timer) -----
+// ----- Router (unchanged) -----
 function Router() {
   const { state, dispatch, exportCSV } = useGame();
+  const appContainerRef = useRef(null); // Ref for keyboard drag constraints
 
   const handleIdleReset = useCallback(() => {
     dispatch({ type: 'IDLE_RESET' });
   }, [dispatch]);
 
-  // Disable idle timer while an admin session is active
   useIdleTimer(handleIdleReset, 60000, !state.activeSession);
 
   return (
     <Layout>
-      <AnimatePresence mode="wait">
-        {state.screen === 'attract' && (
-          <motion.div key="attract" className="absolute inset-0 z-10">
-            <AttractScreen onTouch={() => dispatch({ type: 'GO', payload: 'register' })} />
-          </motion.div>
-        )}
-        {state.screen === 'loading_session' && (
-          <motion.div key="loading_session" className="absolute inset-0 z-10 flex items-center justify-center">
-            <LoadingSessionScreen session={state.activeSession} onComplete={() => dispatch({ type: 'GO', payload: 'register' })} />
-          </motion.div>
-        )}
-        {state.screen === 'register' && (
-          <motion.div key="register" className="absolute inset-0 z-10 flex items-center justify-center">
-            <RegisterScreen onSubmit={(user) => dispatch({ type: 'SUBMIT_INFO', payload: user })} />
-          </motion.div>
-        )}
-        {state.screen === 'processing' && (
-          <motion.div key="processing" className="absolute inset-0 z-10 flex items-center justify-center">
-            <ProcessingScreen onComplete={() => dispatch({ type: 'REGISTER_LEAD' })} />
-          </motion.div>
-        )}
-        {state.screen === 'spinning' && (
-          <motion.div key="spinning" className="absolute inset-0 z-10 flex items-center justify-center">
-            <SpinScreen onComplete={(prize) => dispatch({ type: 'SET_PRIZE', payload: prize })} />
-          </motion.div>
-        )}
-        {state.screen === 'winner' && (
-          <motion.div key="winner" className="absolute inset-0 z-10 flex items-center justify-center">
-            <WinnerScreen prize={state.prize} onValidate={() => dispatch({ type: 'SAVE_AND_RESET' })} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-      <AdminPortal onExport={exportCSV} leadCount={state.leads.length} />
+      <div ref={appContainerRef} className="relative w-full h-full">
+        <AnimatePresence mode="wait">
+          {state.screen === 'attract' && (
+            <motion.div key="attract" className="absolute inset-0 z-10">
+              <AttractScreen onTouch={() => dispatch({ type: 'GO', payload: 'register' })} />
+            </motion.div>
+          )}
+          {state.screen === 'loading_session' && (
+            <motion.div key="loading_session" className="absolute inset-0 z-10 flex items-center justify-center">
+              <LoadingSessionScreen onComplete={() => dispatch({ type: 'GO', payload: 'register' })} />
+            </motion.div>
+          )}
+          {state.screen === 'register' && (
+            <motion.div key="register" className="absolute inset-0 z-10 flex items-center justify-center">
+              <RegisterScreen
+                onSubmit={(user) => dispatch({ type: 'SUBMIT_INFO', payload: user })}
+                containerRef={appContainerRef}
+              />
+            </motion.div>
+          )}
+          {state.screen === 'processing' && (
+            <motion.div key="processing" className="absolute inset-0 z-10 flex items-center justify-center">
+              <ProcessingScreen onComplete={() => dispatch({ type: 'REGISTER_LEAD' })} />
+            </motion.div>
+          )}
+          {state.screen === 'spinning' && (
+            <motion.div key="spinning" className="absolute inset-0 z-10 flex items-center justify-center">
+              <SpinScreen onComplete={(prize) => dispatch({ type: 'SET_PRIZE', payload: prize })} />
+            </motion.div>
+          )}
+          {state.screen === 'winner' && (
+            <motion.div key="winner" className="absolute inset-0 z-10 flex items-center justify-center">
+              <WinnerScreen prize={state.prize} onValidate={() => dispatch({ type: 'SAVE_AND_RESET' })} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <AdminPortal onExport={exportCSV} leadCount={state.leads.length} />
+      </div>
     </Layout>
   );
 }

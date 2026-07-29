@@ -1,54 +1,36 @@
 import React, { createContext, useContext, useReducer } from 'react';
 
 export const PRIZES = [
-  { id: '1', name: '0.5 g Gold Bar', color: '#F44336', text: '#FFFFFF', emoji: '🧈', weight: 1 },
-  { id: '2', name: '0.25 g Gold Bar', color: '#FF9800', text: '#1C1917', emoji: '🧈', weight: 2 },
-  { id: '3', name: 'Smart Earbuds', color: '#FFEB3B', text: '#1C1917', emoji: '🎧', weight: 5 },
-  { id: '4', name: 'Smartwatch', color: '#4CAF50', text: '#FFFFFF', emoji: '⌚', weight: 4 },
-  { id: '5', name: 'Gold Pound', color: '#2196F3', text: '#FFFFFF', emoji: '🪙', weight: 1 },
-  { id: '6', name: '1,000 Reward Points', color: '#9C27B0', text: '#FFFFFF', emoji: '🎫️', weight: 30 },
-  { id: '7', name: '3,000 Reward Points', color: '#00BCD4', text: '#1C1917', emoji: '🎫️', weight: 15 },
-  { id: '8', name: 'Giveaway Item', color: '#795548', text: '#FFFFFF', emoji: '🎁', weight: 42 }
+  { id: '1', name: 'Quarter-gram Gold Bar', color: '#FFD700', text: '#1C1917', emoji: '🧈', weight: 4 },
+  { id: '2', name: 'Half-gram Gold Bar', color: '#FFA500', text: '#1C1917', emoji: '🧈', weight: 4 },
+  { id: '3', name: 'Gold Pound (Coin)', color: '#FFD700', text: '#1C1917', emoji: '🪙', weight: 4 },
+  { id: '4', name: 'Mobile Phone', color: '#4CAF50', text: '#FFFFFF', emoji: '📱', weight: 1 },
+  { id: '5', name: 'Smartwatch', color: '#2196F3', text: '#FFFFFF', emoji: '⌚', weight: 1 },
+  { id: '6', name: 'Smart Earbuds', color: '#FFEB3B', text: '#1C1917', emoji: '🎧', weight: 1 },
+  { id: '7', name: 'Shopping Voucher 500 EGP', color: '#9C27B0', text: '#FFFFFF', emoji: '🎟️', weight: 8 },
 ];
 
-export const HOURLY_INVENTORY_NAMES = {
-  '7pm': ['0.5 g Gold Bar', 'Smart Earbuds', '1,000 Reward Points', '1,000 Reward Points', '3,000 Reward Points', '3,000 Reward Points', 'Giveaway Item', 'Giveaway Item'],
-  '8pm': ['Gold Pound', 'Smartwatch', '0.25 g Gold Bar', '1,000 Reward Points', '1,000 Reward Points', '3,000 Reward Points', '3,000 Reward Points', 'Giveaway Item', 'Giveaway Item'],
-  '9pm': ['0.25 g Gold Bar', '0.25 g Gold Bar', 'Smart Earbuds', '1,000 Reward Points', '1,000 Reward Points', '3,000 Reward Points', '3,000 Reward Points', 'Giveaway Item', 'Giveaway Item'],
-  '10pm': ['Gold Pound', 'Smart Earbuds', '1,000 Reward Points', '1,000 Reward Points', '3,000 Reward Points', '3,000 Reward Points', 'Giveaway Item', 'Giveaway Item']
+const PRIZE_POOL_DISTRIBUTION = {
+  'Quarter-gram Gold Bar': 4,
+  'Half-gram Gold Bar': 4,
+  'Gold Pound (Coin)': 4,
+  'Mobile Phone': 1,
+  'Smartwatch': 1,
+  'Smart Earbuds': 1,
+  'Shopping Voucher 500 EGP': 8,
 };
 
-function mapInventoryToPrizeObjects(names) {
-  return names.map(name => {
+function generatePrizePool() {
+  const pool = [];
+  for (const [name, quantity] of Object.entries(PRIZE_POOL_DISTRIBUTION)) {
     const prize = PRIZES.find(p => p.name === name);
-    if (!prize) {
-      console.warn(`Prize "${name}" not found in PRIZES`);
-      return null;
+    if (!prize) continue;
+    for (let i = 0; i < quantity; i++) {
+      pool.push({ ...prize });
     }
-    return { ...prize };
-  }).filter(p => p !== null);
+  }
+  return shuffleArray(pool);
 }
-
-const GameContext = createContext();
-
-const initialState = {
-  screen: 'attract',
-  activeSession: null,
-  user: null,
-  prize: null,
-  leads: [],
-  sessionDecks: {}
-};
-
-const getInitialState = () => {
-  const savedLeads = loadFromLocalStorage('spin_to_win_leads');
-  const savedDecks = loadFromLocalStorage('spin_to_win_decks');
-  return {
-    ...initialState,
-    leads: savedLeads || [],
-    sessionDecks: savedDecks || {}
-  };
-};
 
 function shuffleArray(array) {
   const arr = [...array];
@@ -59,26 +41,37 @@ function shuffleArray(array) {
   return arr;
 }
 
-/**
- * Helper: Create a lead object from user data
- * Ensures consistent lead structure across the app
- */
-function createLead(user, prize, activeSession) {
+const GameContext = createContext();
+
+const initialState = {
+  screen: 'attract',
+  activeSession: null,
+  user: null,
+  prize: null,
+  leads: [],
+  sessionDecks: {},
+};
+
+const getInitialState = () => {
+  const savedLeads = loadFromLocalStorage('spin_to_win_leads');
+  const savedDecks = loadFromLocalStorage('spin_to_win_decks');
   return {
-    id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : Math.random().toString(36).substring(2, 9),
-    timestamp: new Date().toISOString(),
-    session: activeSession || 'General',
-    fullName: user?.fullName || user?.name || '',
-    phone: user?.phone || '',
-    receipt: user?.receipt || '',
-    idNumber: user?.idNumber || '',
-    prize: prize?.name || 'Registered for Event'
+    ...initialState,
+    leads: savedLeads || [],
+    sessionDecks: savedDecks || {},
   };
+};
+
+function loadFromLocalStorage(key) {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : null;
+  } catch (error) {
+    console.error(`Failed to load from localStorage (${key}):`, error);
+    return null;
+  }
 }
 
-/**
- * Helper: Safely save data to localStorage with error reporting
- */
 function saveToLocalStorage(key, value) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
@@ -93,49 +86,49 @@ function saveToLocalStorage(key, value) {
   }
 }
 
-/**
- * Helper: Safely read data from localStorage
- */
-function loadFromLocalStorage(key) {
-  try {
-    const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : null;
-  } catch (error) {
-    console.error(`Failed to load from localStorage (${key}):`, error);
-    return null;
-  }
+function createLead(user, prize, activeSession) {
+  return {
+    id: (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : Math.random().toString(36).substring(2, 9),
+    timestamp: new Date().toISOString(),
+    session: activeSession || 'General',
+    fullName: user?.fullName || user?.name || '',
+    phone: user?.phone || '',
+    receipt: user?.receipt || '',
+    idNumber: user?.idNumber || '',
+    prize: prize?.name || 'Registered for Event',
+  };
 }
 
 function gameReducer(state, action) {
   switch (action.type) {
     case 'GO':
       return { ...state, screen: action.payload };
+
     case 'SET_USER':
       return { ...state, user: action.payload };
 
-case 'START_SESSION': {
-  const sessionKey = action.payload;
-  const names = HOURLY_INVENTORY_NAMES[sessionKey];
-  if (!names) {
-    console.error(`No inventory for ${sessionKey}`);
-    return state;
-  }
-  const prizeObjects = mapInventoryToPrizeObjects(names);
-  const freshDeck = shuffleArray(prizeObjects);
-  const updatedDecks = { ...state.sessionDecks, [sessionKey]: freshDeck };
-  saveToLocalStorage('spin_to_win_decks', updatedDecks);
-  return {
-    ...state,
-    activeSession: sessionKey,
-    sessionDecks: updatedDecks,
-    screen: 'loading_session'
-  };
-}
+    case 'START_SESSION': {
+      const pool = generatePrizePool();
+      const updatedDecks = { ...state.sessionDecks, main: pool };
+      saveToLocalStorage('spin_to_win_decks', updatedDecks);
+      return {
+        ...state,
+        activeSession: 'main',
+        sessionDecks: updatedDecks,
+        screen: 'loading_session',
+      };
+    }
 
-    // Centralized submit: decides next screen based on activeSession
+    case 'RESET_POOL': {
+      if (!state.activeSession) return state;
+      const pool = generatePrizePool();
+      const updatedDecks = { ...state.sessionDecks, main: pool };
+      saveToLocalStorage('spin_to_win_decks', updatedDecks);
+      return { ...state, sessionDecks: updatedDecks };
+    }
+
     case 'SUBMIT_INFO': {
       const newUser = action.payload;
-      // If an hourly draw is active, go directly to spinning (skip processing)
       const nextScreen = state.activeSession ? 'spinning' : 'processing';
       return { ...state, user: newUser, screen: nextScreen };
     }
@@ -146,8 +139,7 @@ case 'START_SESSION': {
 
       if (state.activeSession && state.sessionDecks[state.activeSession]?.length > 0) {
         const deck = [...state.sessionDecks[state.activeSession]];
-        // Since we always award deck[0] during a session, we can safely remove index 0
-        deck.splice(0, 1); 
+        deck.splice(0, 1);
         updatedDecks[state.activeSession] = deck;
         saveToLocalStorage('spin_to_win_decks', updatedDecks);
       }
@@ -156,7 +148,7 @@ case 'START_SESSION': {
         ...state,
         screen: 'winner',
         prize: awardedPrize,
-        sessionDecks: updatedDecks
+        sessionDecks: updatedDecks,
       };
     }
 
@@ -166,9 +158,11 @@ case 'START_SESSION': {
       const updatedLeads = [...state.leads, newLead];
       saveToLocalStorage('spin_to_win_leads', updatedLeads);
 
-      const remainingInSession = state.activeSession ? state.sessionDecks[state.activeSession]?.length : 0;
-      const nextScreen = (state.activeSession && remainingInSession > 0) ? 'register' : 'attract';
-      const nextSession = (remainingInSession > 0) ? state.activeSession : null;
+      const remainingInSession = state.activeSession
+        ? state.sessionDecks[state.activeSession]?.length
+        : 0;
+      const nextScreen = state.activeSession && remainingInSession > 0 ? 'register' : 'attract';
+      const nextSession = remainingInSession > 0 ? state.activeSession : null;
 
       return {
         ...state,
@@ -176,7 +170,7 @@ case 'START_SESSION': {
         activeSession: nextSession,
         user: null,
         prize: null,
-        leads: updatedLeads
+        leads: updatedLeads,
       };
     }
 
@@ -190,7 +184,7 @@ case 'START_SESSION': {
         screen: 'attract',
         user: null,
         prize: null,
-        leads: updatedLeads
+        leads: updatedLeads,
       };
     }
 
@@ -204,14 +198,14 @@ case 'START_SESSION': {
       } catch (e) {}
       return { ...state, sessionDecks: {}, activeSession: null };
 
-	    case 'IDLE_RESET':
-      // Return to attract and forget any half‑filled registration
+    case 'IDLE_RESET':
+      // Only return to attract screen, keep session and leads intact
       return {
         ...state,
         screen: 'attract',
         user: null,
         prize: null,
-        activeSession: null,
+        // activeSession remains unchanged
       };
 
     default:
@@ -233,7 +227,7 @@ export function GameProvider({ children }) {
       `"${(lead.phone || '').replace(/"/g, '""')}"`,
       `"${(lead.receipt || '').replace(/"/g, '""')}"`,
       `"${(lead.idNumber || '').replace(/"/g, '""')}"`,
-      `"${(lead.prize || '').replace(/"/g, '""')}"`
+      `"${(lead.prize || '').replace(/"/g, '""')}"`,
     ]);
     const nl = '\n';
     const csvContent = [headers.join(','), ...rows.map(e => e.join(','))].join(nl);
