@@ -35,9 +35,10 @@ export default function OnScreenKeyboard({
     <AnimatePresence>
       {isOpen && (
         <motion.div
+          key="custom-keyboard"
           initial={{ opacity: 0, scale: 0.95, y: 40 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 40 }}
+          animate={{ opacity: 1, scale: 1, y: 0, pointerEvents: 'auto' }}
+          exit={{ opacity: 0, scale: 0.95, y: 40, pointerEvents: 'none' }}
           transition={{ type: 'spring', damping: 30, stiffness: 300 }}
 
           drag
