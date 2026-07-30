@@ -2,10 +2,10 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useGame } from '../context/GameContext';
-import { Lock, X, Shield, FileSpreadsheet, Play, Trash2 } from 'lucide-react';
+import { Lock, X, Shield, FileSpreadsheet, Play, Trash2, RotateCw } from 'lucide-react';
 
 export default function AdminPortal({ onExport, leadCount }) {
-  const { dispatch } = useGame();
+  const { state, dispatch } = useGame();
   const [isOpen, setIsOpen] = useState(false);
   const [currentScreen, setCurrentScreen] = useState('password');
   const [pin, setPin] = useState('');
@@ -15,6 +15,34 @@ export default function AdminPortal({ onExport, leadCount }) {
 
   const pinInputRef = useRef(null);
 
+  // ---------- Session state ----------
+  // Compute remaining from context
+  const deck = state?.sessionDecks?.main || [];
+  const remaining = deck.length;
+
+  // Local state to force the Continue button to appear after a hard reload
+  const [hasLocalDeck, setHasLocalDeck] = useState(false);
+
+  // On mount, check localStorage directly for any remaining prizes
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('spin_to_win_decks');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const mainDeck = parsed?.main || [];
+        setHasLocalDeck(mainDeck.length > 0);
+      } else {
+        setHasLocalDeck(false);
+      }
+    } catch (_) {
+      setHasLocalDeck(false);
+    }
+  }, []);
+
+  // Show Continue if either the context has remaining prizes OR localStorage has any
+  const hasActiveSession = remaining > 0 || hasLocalDeck;
+
+  // ---------- Rest of the component (unchanged) ----------
   useEffect(() => {
     if (currentScreen === 'password' && isOpen && pinInputRef.current) {
       pinInputRef.current.focus();
@@ -94,8 +122,13 @@ export default function AdminPortal({ onExport, leadCount }) {
     }
   };
 
-  const startSession = () => {
-    dispatch({ type: 'START_SESSION' }); // always creates a fresh 23‑prize pool
+  const resumeSession = () => {
+    dispatch({ type: 'RESUME_SESSION' });
+    closeAdmin();
+  };
+
+  const startNewSession = () => {
+    dispatch({ type: 'START_SESSION' });
     closeAdmin();
   };
 
@@ -230,21 +263,42 @@ export default function AdminPortal({ onExport, leadCount }) {
                       Event Console
                     </h3>
 
-                    {/* Single session control – always starts a fresh 23‑prize pool */}
+                    {/* Session Control – now uses both context and localStorage */}
                     <div className="w-full space-y-3 mb-6">
                       <p className="text-xs text-gray-400 tracking-widest uppercase font-bold px-1">
                         Spin Session
                       </p>
-                      <button
-                        onClick={startSession}
-                        className="w-full py-4 px-5 rounded-2xl font-bold uppercase tracking-wider text-sm bg-gray-900 hover:bg-black text-white flex items-center justify-center gap-3 border-2 border-transparent active:scale-[0.98] shadow-md"
-                      >
-                        <Play className="w-5 h-5 text-red-500 fill-red-500" />
-                        Start Spin Session
-                      </button>
+                      {hasActiveSession ? (
+                        <div className="flex gap-3">
+                          <button
+                            onClick={resumeSession}
+                            className="relative flex-1 py-4 rounded-2xl font-bold uppercase tracking-wider text-sm bg-green-600 hover:bg-green-700 text-white flex items-center justify-center gap-2 active:scale-[0.98] shadow-md"
+                          >
+                            Continue Session
+                            <span className="absolute -top-6 -right-6 bg-red-500 text-white text-[6px] font-bold rounded-full w-3 h-3 flex items-center justify-center shadow-sm">
+                              {remaining || 0}
+                            </span>
+                          </button>
+                          <button
+                            onClick={startNewSession}
+                            className="flex-1 py-4 rounded-2xl font-bold uppercase tracking-wider text-sm bg-gray-900 hover:bg-black text-white flex items-center justify-center gap-2 active:scale-[0.98] shadow-md"
+                          >
+                            <RotateCw className="w-4 h-4 text-red-400" />
+                            Start New
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={startNewSession}
+                          className="w-full py-4 px-5 rounded-2xl font-bold uppercase tracking-wider text-sm bg-gray-900 hover:bg-black text-white flex items-center justify-center gap-3 border-2 border-transparent active:scale-[0.98] shadow-md"
+                        >
+                          <Play className="w-5 h-5 text-red-500 fill-red-500" />
+                          Start Spin Session
+                        </button>
+                      )}
                     </div>
 
-                    {/* Data Management */}
+                    {/* Data Management – unchanged */}
                     <div className="w-full space-y-3 pt-6 border-t border-gray-200">
                       <p className="text-xs text-gray-400 tracking-widest uppercase font-bold px-1">
                         Data Management
@@ -302,7 +356,6 @@ export default function AdminPortal({ onExport, leadCount }) {
                       )}
                     </div>
 
-                    {/* Exit */}
                     <div className="w-full pt-6 mt-6 border-t border-gray-200 flex gap-3">
                       <button
                         onClick={closeAdmin}

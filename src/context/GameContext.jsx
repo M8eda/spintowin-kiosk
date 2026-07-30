@@ -20,11 +20,6 @@ const PRIZE_POOL_DISTRIBUTION = {
   'Shopping Voucher 500 EGP': 8,
 };
 
-/**
- * Generates a 23‑prize pool with the following guarantees:
- * - First item is always non‑gold.
- * - Exactly one adjacent pair of gold prizes (i.e., no two golds back‑to‑back anywhere else).
- */
 function generatePrizePool() {
   const goldItems = [];
   const nonGoldItems = [];
@@ -39,20 +34,15 @@ function generatePrizePool() {
     }
   }
 
-  // 🔽 Fixed: shuffle mutates the original arrays
   shuffleArray(goldItems);
   shuffleArray(nonGoldItems);
 
-  // Build alternating sequence: N, G, N, G, ..., G (11 pairs)
   const base = [];
   for (let i = 0; i < 11; i++) {
     base.push(nonGoldItems[i]);
     base.push(goldItems[i]);
   }
-  // base now has 22 items: N, G, N, G, …, G (ends with gold)
 
-  // Insert the remaining gold (goldItems[11]) next to a random gold,
-  // creating exactly one GG adjacency.
   const goldIndices = [];
   for (let i = 1; i < base.length; i += 2) goldIndices.push(i);
   const insertAfter = goldIndices[Math.floor(Math.random() * goldIndices.length)];
@@ -61,7 +51,6 @@ function generatePrizePool() {
   return base;
 }
 
-// 🔽 CORRECTED: mutates the array in place
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -69,10 +58,6 @@ function shuffleArray(array) {
   }
   return array;
 }
-
-// ------------------------------------------------------------------
-// The rest of GameContext remains unchanged
-// ------------------------------------------------------------------
 
 const GameContext = createContext();
 
@@ -88,6 +73,8 @@ const initialState = {
 const getInitialState = () => {
   const savedLeads = loadFromLocalStorage('spin_to_win_leads');
   const savedDecks = loadFromLocalStorage('spin_to_win_decks');
+
+  // ✅ No automatic activeSession – let the admin resume explicitly
   return {
     ...initialState,
     leads: savedLeads || [],
@@ -150,6 +137,19 @@ function gameReducer(state, action) {
         sessionDecks: updatedDecks,
         screen: 'loading_session',
       };
+    }
+
+    case 'RESUME_SESSION': {
+      if (state.sessionDecks?.main && state.sessionDecks.main.length > 0) {
+        return {
+          ...state,
+          activeSession: 'main',
+          screen: 'register',
+          user: null,
+          prize: null,
+        };
+      }
+      return state;
     }
 
     case 'RESET_POOL': {
