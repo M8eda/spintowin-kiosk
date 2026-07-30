@@ -2,10 +2,19 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { Sparkles, ArrowRight } from 'lucide-react';
+import { PRIZES } from '../context/GameContext';
 
-/* ------------------------------------------------------------------ */
-/*  Mini SVG icons matching the wheel’s custom gold drawings           */
-/* ------------------------------------------------------------------ */
+// Same segment colours as the wheel
+const SEGMENT_COLORS = [
+  '#d63d73',
+  '#4c9e38',
+  '#016ba7',
+  '#6b3e93',
+  '#1e9a9a',
+  '#f6a21c',
+  '#c51f2b',
+];
+
 function GoldIngotIcon() {
   return (
     <svg width="80" height="60" viewBox="0 0 80 60" className="drop-shadow-md mx-auto">
@@ -47,12 +56,12 @@ function GoldPoundIcon() {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/*  WinnerScreen component                                            */
-/* ------------------------------------------------------------------ */
 export default function WinnerScreen({ prize, onValidate }) {
   const frameRef = useRef(null);
   const [flash, setFlash] = useState(true);
+
+  const prizeIndex = PRIZES.findIndex(p => p.id === prize?.id);
+  const segmentColor = prizeIndex >= 0 ? SEGMENT_COLORS[prizeIndex % SEGMENT_COLORS.length] : '#d63d73';
 
   useEffect(() => {
     const duration = 4000;
@@ -75,7 +84,6 @@ export default function WinnerScreen({ prize, onValidate }) {
     };
   }, []);
 
-  /* ---- decide which icon to show ---- */
   const prizeName = prize?.name?.toLowerCase() || '';
   const isGoldBar = prizeName.includes('gold bar');
   const isGoldPound = prizeName.includes('gold pound');
@@ -117,8 +125,12 @@ export default function WinnerScreen({ prize, onValidate }) {
             <span>Official Winner</span>
           </motion.div>
 
+          {/* Glowing text only – no border or lights */}
           <motion.h2
-            className="text-4xl md:text-5xl font-serif text-black font-bold tracking-tight"
+            className="text-4xl md:text-5xl font-serif font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-amber-400 to-red-600 animate-gradient-x"
+            style={{
+              textShadow: '0 0 12px rgba(220,38,38,0.4), 0 0 40px rgba(220,38,38,0.2)',
+            }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.5 }}
@@ -127,28 +139,40 @@ export default function WinnerScreen({ prize, onValidate }) {
           </motion.h2>
         </div>
 
-        {/* Prize icon area */}
+        {/* Prize circle with delayed colour fill */}
         <motion.div
           className="my-4 relative flex items-center justify-center w-full"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.4, duration: 0.5, ease: 'out' }}
         >
-          <motion.div
-            className="relative z-10 w-44 h-44 rounded-full bg-white border-2 border-red-500/10 shadow-[0_15px_40px_rgba(220,38,38,0.12)] flex items-center justify-center overflow-hidden"
-            animate={{ y: [-5, 5, -5] }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            {isGoldBar ? (
-              <GoldIngotIcon />
-            ) : isGoldPound ? (
-              <GoldPoundIcon />
-            ) : (
-              <span className="text-7xl drop-shadow-md select-none" role="img" aria-label={prize?.name || 'Reward'}>
-                {prize?.emoji || '🎁'}
-              </span>
-            )}
-          </motion.div>
+          <div className="relative z-10 w-44 h-44 rounded-full shadow-[0_15px_40px_rgba(220,38,38,0.12)] flex items-center justify-center overflow-hidden">
+            {/* White background – visible first */}
+            <div className="absolute inset-0 bg-white" />
+            {/* Coloured fill – grows from center with a longer duration and delay */}
+            <motion.div
+              className="absolute inset-0 rounded-full"
+              style={{ backgroundColor: segmentColor }}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
+            />
+            {/* Inner subtle overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent rounded-full" />
+
+            {/* Icon on top */}
+            <div className="relative z-10 flex items-center justify-center w-full h-full">
+              {isGoldBar ? (
+                <GoldIngotIcon />
+              ) : isGoldPound ? (
+                <GoldPoundIcon />
+              ) : (
+                <span className="text-7xl drop-shadow-md select-none" role="img" aria-label={prize?.name || 'Reward'}>
+                  {prize?.emoji || '🎁'}
+                </span>
+              )}
+            </div>
+          </div>
         </motion.div>
 
         {/* Prize name */}
@@ -197,6 +221,18 @@ export default function WinnerScreen({ prize, onValidate }) {
           </p>
         </motion.div>
       </motion.div>
+
+      {/* Tailwind custom animations (only gradient‑x is needed now) */}
+      <style jsx>{`
+        @keyframes gradient-x {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        .animate-gradient-x {
+          background-size: 200% 200%;
+          animation: gradient-x 2s ease infinite;
+        }
+      `}</style>
     </div>
   );
 }

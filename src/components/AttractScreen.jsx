@@ -61,7 +61,6 @@ function FallingProducts() {
   );
 }
 
-// 💥 Dynamic Cascading Triple Sonar Waves
 function SonarRipples() {
   return (
     <>
@@ -138,17 +137,12 @@ export default function AttractScreen({ onTouch }) {
         </motion.p>
       </div>
 
-      <div className="w-full flex flex-col items-center mt-auto pb-0 px-6 -mb-6">
+      <div className="w-full flex flex-col items-center mt-auto pb-6 px-6">
         <motion.div className="relative w-full max-w-[320px]" variants={textVariant}>
-          
-          {/* 🔥 Energetic High-Impact Kiosk Button */}
           <motion.div 
             className="relative w-full py-5 rounded-2xl bg-gradient-to-r from-red-600 via-red-500 to-red-600 text-white font-black uppercase tracking-[0.2em] text-xl flex items-center justify-center gap-3 overflow-hidden select-none border border-white/20" 
             aria-label="Start button - begin raffle entry"
-            
-            // Heartbeat + Jiggle Choreography Loop
             animate={{
-              // Rapid pulse, small rebound, brief pause, quick shake, repeat
               scale: [1, 1.08, 0.96, 1.04, 1, 1, 1, 1],
               rotate: [0, 0, 0, 0, 0, 1.5, -1.5, 0],
               boxShadow: [
@@ -167,14 +161,11 @@ export default function AttractScreen({ onTouch }) {
               repeat: Infinity,
               ease: "easeInOut"
             }}
-            
             whileHover={{ scale: 1.06 }}
             whileTap={{ scale: 0.94 }}
           >
-            {/* Rapidly Cascading Sonar Rings */}
             <SonarRipples />
 
-            {/* High-speed White Sheen Shimmer */}
             <motion.div 
               className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent pointer-events-none"
               initial={{ x: "-150%" }}
@@ -188,7 +179,6 @@ export default function AttractScreen({ onTouch }) {
               }}
             />
 
-            {/* Hyper-active Sparkle Icon */}
             <motion.div
               animate={{ 
                 rotate: 360, 
@@ -207,10 +197,26 @@ export default function AttractScreen({ onTouch }) {
               Start Now
             </span>
           </motion.div>
-
         </motion.div>
 
-        <motion.div className="flex items-center gap-3 text-red-600 mt-6" variants={textVariant}>
+        {/* 🔥 UPDATED HOTLINE – subtle breathing animation */}
+        <motion.div
+          className="flex items-center gap-3 text-red-600 mt-6"
+          variants={textVariant}
+          animate={{
+            scale: [1, 1.03, 1],
+            textShadow: [
+              "0 0 0px rgba(220,38,38,0)",
+              "0 0 12px rgba(220,38,38,0.15)",
+              "0 0 0px rgba(220,38,38,0)",
+            ],
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        >
           <Phone className="w-8 h-8" strokeWidth={1.5} aria-hidden="true" />
           <span className="text-4xl font-bold font-sans tracking-wide" aria-label="Support phone number: 19955">19955</span>
         </motion.div>

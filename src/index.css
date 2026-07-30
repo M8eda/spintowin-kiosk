@@ -1,7 +1,32 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap');
 @import "tailwindcss";
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-html, body, #root { height: 100%; width: 100%; overflow: hidden; position: fixed; background-color: #ffffff; color: #1c1917; }
-.velvet-bg { background-color: #ffffff; }
-@keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
-.animate-shimmer { background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 25%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0.2) 75%, transparent 100%); background-size: 200% 100%; animation: shimmer 3s infinite; }
+
+*, *::before, *::after {
+  /* margin: 0; */
+  /* padding: 0; */
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  position: fixed;
+  background-color: #ffffff;
+  color: #1c1917;
+}
+
+.velvet-bg {
+  background-color: #ffffff;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 25%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0.2) 75%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 3s infinite;
+}

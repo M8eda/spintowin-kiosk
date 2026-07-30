@@ -3,6 +3,17 @@ import { motion } from 'framer-motion';
 import { useGame, PRIZES } from '../context/GameContext';
 import { useSound } from '../hooks/useSound';
 
+// New segment colors (in order of PRIZES)
+const SEGMENT_COLORS = [
+  '#d63d73',
+  '#4c9e38',
+  '#016ba7',
+  '#6b3e93',
+  '#1e9a9a',
+  '#f6a21c',
+  '#c51f2b',
+];
+
 // Helper to split long prize names into two lines
 function getSplitLabel(name) {
   switch (name) {
@@ -234,8 +245,9 @@ export default function SpinScreen({ onComplete }) {
         const angle = rotation + i * arc;
         const isSegmentGlowing = (i + timeFactor) % 2 === 0;
 
+        // Use new segment color
         ctx.beginPath();
-        ctx.fillStyle = prize.color;
+        ctx.fillStyle = SEGMENT_COLORS[i % SEGMENT_COLORS.length];
         ctx.moveTo(radius, radius);
         ctx.arc(radius, radius, radius - 24, angle, angle + arc);
         ctx.lineTo(radius, radius);
@@ -287,14 +299,16 @@ export default function SpinScreen({ onComplete }) {
         ctx.shadowBlur = 4;
         ctx.shadowColor = 'rgba(0,0,0,0.6)';
         ctx.fillStyle = '#FFFFFF';
-        ctx.font = '800 10px "Montserrat", sans-serif';
+        // 🔽 Increased font size from 10px to 12px
+        ctx.font = '800 13px "Montserrat", sans-serif';
         ctx.textAlign = 'center';
 
         if (line2) {
-          ctx.fillText(line1, radius * 0.62, 16);
-          ctx.fillText(line2, radius * 0.62, 30);
+          // Slightly adjust vertical positions for bigger text
+          ctx.fillText(line1, radius * 0.62, 18);
+          ctx.fillText(line2, radius * 0.62, 34);
         } else {
-          ctx.fillText(line1, radius * 0.62, 22);
+          ctx.fillText(line1, radius * 0.62, 24);
         }
 
         ctx.restore();
