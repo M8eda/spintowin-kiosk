@@ -1,7 +1,6 @@
-// src/components/AdminPortal.jsx
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useGame } from '../context/GameContext';
+import { useGame, DATE_DISTRIBUTIONS } from '../context/GameContext';
 import { Lock, X, Shield, FileSpreadsheet, Play, Trash2, RotateCw } from 'lucide-react';
 
 export default function AdminPortal({ onExport, leadCount }) {
@@ -10,20 +9,19 @@ export default function AdminPortal({ onExport, leadCount }) {
   const [currentScreen, setCurrentScreen] = useState('password');
   const [pin, setPin] = useState('');
   const [error, setError] = useState('');
+  
+  // New state mapping directly to context distribution keys
+  const [selectedDate, setSelectedDate] = useState(Object.keys(DATE_DISTRIBUTIONS)[0]);
+  
   const taps = useRef(0);
   const timer = useRef(null);
-
   const pinInputRef = useRef(null);
 
-  // ---------- Session state ----------
-  // Compute remaining from context
   const deck = state?.sessionDecks?.main || [];
   const remaining = deck.length;
 
-  // Local state to force the Continue button to appear after a hard reload
   const [hasLocalDeck, setHasLocalDeck] = useState(false);
 
-  // On mount, check localStorage directly for any remaining prizes
   useEffect(() => {
     try {
       const saved = localStorage.getItem('spin_to_win_decks');
@@ -39,10 +37,8 @@ export default function AdminPortal({ onExport, leadCount }) {
     }
   }, []);
 
-  // Show Continue if either the context has remaining prizes OR localStorage has any
   const hasActiveSession = remaining > 0 || hasLocalDeck;
 
-  // ---------- Rest of the component (unchanged) ----------
   useEffect(() => {
     if (currentScreen === 'password' && isOpen && pinInputRef.current) {
       pinInputRef.current.focus();
@@ -128,7 +124,8 @@ export default function AdminPortal({ onExport, leadCount }) {
   };
 
   const startNewSession = () => {
-    dispatch({ type: 'START_SESSION' });
+    // Dispatch the payload referencing selected properties
+    dispatch({ type: 'START_SESSION', payload: selectedDate });
     closeAdmin();
   };
 
@@ -263,11 +260,25 @@ export default function AdminPortal({ onExport, leadCount }) {
                       Event Console
                     </h3>
 
-                    {/* Session Control – now uses both context and localStorage */}
                     <div className="w-full space-y-3 mb-6">
                       <p className="text-xs text-gray-400 tracking-widest uppercase font-bold px-1">
-                        Spin Session
+                        Spin Session Setup
                       </p>
+                      
+                      {/* NEW DROPDOWN TO SELECT CONFIG */}
+                      <div className="w-full mb-3">
+                        <label className="sr-only">Select Event Location and Date</label>
+                        <select
+                          value={selectedDate}
+                          onChange={(e) => setSelectedDate(e.target.value)}
+                          className="w-full py-3 px-4 rounded-xl border border-gray-300 bg-white text-sm font-bold text-gray-700 outline-none focus:border-red-500 shadow-sm focus:ring-2 focus:ring-red-500/20"
+                        >
+                          {Object.keys(DATE_DISTRIBUTIONS).map(date => (
+                            <option key={date} value={date}>{date}</option>
+                          ))}
+                        </select>
+                      </div>
+
                       {hasActiveSession ? (
                         <div className="flex gap-3">
                           <button
@@ -298,7 +309,6 @@ export default function AdminPortal({ onExport, leadCount }) {
                       )}
                     </div>
 
-                    {/* Data Management – unchanged */}
                     <div className="w-full space-y-3 pt-6 border-t border-gray-200">
                       <p className="text-xs text-gray-400 tracking-widest uppercase font-bold px-1">
                         Data Management

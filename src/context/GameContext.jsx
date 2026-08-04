@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useReducer } from 'react';
 
 export const PRIZES = [
-  { id: '1', name: 'Quarter-gram Gold Bar', color: '#FFD700', text: '#1C1917', emoji: '🧈', weight: 4 },
-  { id: '2', name: 'Half-gram Gold Bar', color: '#FFA500', text: '#1C1917', emoji: '🧈', weight: 4 },
+  { id: '1', name: 'Quarter-gram Gold Bar', color: '#FFD700', text: '#1C1917', emoji: '🪙', weight: 4 },
+  { id: '2', name: 'Half-gram Gold Bar', color: '#FFA500', text: '#1C1917', emoji: '🪙', weight: 4 },
   { id: '3', name: 'Gold Pound (Coin)', color: '#FFD700', text: '#1C1917', emoji: '🪙', weight: 4 },
   { id: '4', name: 'Mobile Phone', color: '#4CAF50', text: '#FFFFFF', emoji: '📱', weight: 1 },
   { id: '5', name: 'Smartwatch', color: '#2196F3', text: '#FFFFFF', emoji: '⌚', weight: 1 },
@@ -10,21 +10,23 @@ export const PRIZES = [
   { id: '7', name: 'Shopping Voucher 500 EGP', color: '#9C27B0', text: '#FFFFFF', emoji: '🎟️', weight: 8 },
 ];
 
-const PRIZE_POOL_DISTRIBUTION = {
-  'Quarter-gram Gold Bar': 4,
-  'Half-gram Gold Bar': 4,
-  'Gold Pound (Coin)': 4,
-  'Mobile Phone': 1,
-  'Smartwatch': 1,
-  'Smart Earbuds': 1,
-  'Shopping Voucher 500 EGP': 8,
+// Updated to match the exact quantities from the client's provided image requirements
+export const DATE_DISTRIBUTIONS = {
+  '6/8/2026': { 'Quarter-gram Gold Bar': 2, 'Half-gram Gold Bar': 2, 'Gold Pound (Coin)': 1, 'Mobile Phone': 0, 'Smartwatch': 1, 'Smart Earbuds': 2, 'Shopping Voucher 500 EGP': 8 },
+  '13/8/2026': { 'Quarter-gram Gold Bar': 2, 'Half-gram Gold Bar': 2, 'Gold Pound (Coin)': 1, 'Mobile Phone': 0, 'Smartwatch': 1, 'Smart Earbuds': 4, 'Shopping Voucher 500 EGP': 8 },
+  '20/8/2026': { 'Quarter-gram Gold Bar': 3, 'Half-gram Gold Bar': 2, 'Gold Pound (Coin)': 1, 'Mobile Phone': 0, 'Smartwatch': 1, 'Smart Earbuds': 3, 'Shopping Voucher 500 EGP': 8 },
+  '27/8/2026': { 'Quarter-gram Gold Bar': 4, 'Half-gram Gold Bar': 2, 'Gold Pound (Coin)': 2, 'Mobile Phone': 0, 'Smartwatch': 1, 'Smart Earbuds': 1, 'Shopping Voucher 500 EGP': 8 },
+  '3/9/2026': { 'Quarter-gram Gold Bar': 2, 'Half-gram Gold Bar': 2, 'Gold Pound (Coin)': 3, 'Mobile Phone': 0, 'Smartwatch': 1, 'Smart Earbuds': 2, 'Shopping Voucher 500 EGP': 8 },
+  '10/9/2026': { 'Quarter-gram Gold Bar': 3, 'Half-gram Gold Bar': 2, 'Gold Pound (Coin)': 1, 'Mobile Phone': 0, 'Smartwatch': 1, 'Smart Earbuds': 3, 'Shopping Voucher 500 EGP': 8 },
+  '14/9/2026': { 'Quarter-gram Gold Bar': 2, 'Half-gram Gold Bar': 2, 'Gold Pound (Coin)': 3, 'Mobile Phone': 1, 'Smartwatch': 1, 'Smart Earbuds': 2, 'Shopping Voucher 500 EGP': 8 },
 };
 
-function generatePrizePool() {
+function generatePrizePool(distributionKey) {
+  const distribution = DATE_DISTRIBUTIONS[distributionKey] || DATE_DISTRIBUTIONS['Daher 6/8/2026'];
   const goldItems = [];
   const nonGoldItems = [];
 
-  for (const [name, quantity] of Object.entries(PRIZE_POOL_DISTRIBUTION)) {
+  for (const [name, quantity] of Object.entries(distribution)) {
     const prize = PRIZES.find(p => p.name === name);
     if (!prize) continue;
     const isGold = name.includes('Gold') || name.includes('Gold Pound');
@@ -37,16 +39,26 @@ function generatePrizePool() {
   shuffleArray(goldItems);
   shuffleArray(nonGoldItems);
 
+  // Dynamic anti-clustering algorithm to ensure Gold never repeats consecutively 
+  // safely handles varying arrays lengths based on selected date
   const base = [];
-  for (let i = 0; i < 11; i++) {
-    base.push(nonGoldItems[i]);
-    base.push(goldItems[i]);
-  }
+  const slots = nonGoldItems.length + 1; 
 
-  const goldIndices = [];
-  for (let i = 1; i < base.length; i += 2) goldIndices.push(i);
-  const insertAfter = goldIndices[Math.floor(Math.random() * goldIndices.length)];
-  base.splice(insertAfter + 1, 0, goldItems[11]);
+  const availableSlots = Array.from({ length: slots }, (_, i) => i);
+  shuffleArray(availableSlots);
+  const chosenSlots = availableSlots.slice(0, goldItems.length).sort((a, b) => a - b);
+
+  let goldIndex = 0;
+  let nonGoldIndex = 0;
+
+  for (let i = 0; i < slots; i++) {
+    if (chosenSlots.includes(i) && goldIndex < goldItems.length) {
+      base.push(goldItems[goldIndex++]);
+    }
+    if (nonGoldIndex < nonGoldItems.length) {
+      base.push(nonGoldItems[nonGoldIndex++]);
+    }
+  }
 
   return base;
 }
@@ -64,6 +76,7 @@ const GameContext = createContext();
 const initialState = {
   screen: 'attract',
   activeSession: null,
+  activeDistribution: null,
   user: null,
   prize: null,
   leads: [],
@@ -73,12 +86,13 @@ const initialState = {
 const getInitialState = () => {
   const savedLeads = loadFromLocalStorage('spin_to_win_leads');
   const savedDecks = loadFromLocalStorage('spin_to_win_decks');
+  const savedConfig = loadFromLocalStorage('spin_to_win_config');
 
-  // ✅ No automatic activeSession – let the admin resume explicitly
   return {
     ...initialState,
     leads: savedLeads || [],
     sessionDecks: savedDecks || {},
+    activeDistribution: savedConfig?.activeDistribution || null,
   };
 };
 
@@ -128,12 +142,15 @@ function gameReducer(state, action) {
       return { ...state, user: action.payload };
 
     case 'START_SESSION': {
-      const pool = generatePrizePool();
+      const selectedDateKey = action.payload; // Inherited from Admin Panel
+      const pool = generatePrizePool(selectedDateKey);
       const updatedDecks = { ...state.sessionDecks, main: pool };
       saveToLocalStorage('spin_to_win_decks', updatedDecks);
+      saveToLocalStorage('spin_to_win_config', { activeDistribution: selectedDateKey });
       return {
         ...state,
         activeSession: 'main',
+        activeDistribution: selectedDateKey,
         sessionDecks: updatedDecks,
         screen: 'loading_session',
       };
@@ -154,7 +171,7 @@ function gameReducer(state, action) {
 
     case 'RESET_POOL': {
       if (!state.activeSession) return state;
-      const pool = generatePrizePool();
+      const pool = generatePrizePool(state.activeDistribution);
       const updatedDecks = { ...state.sessionDecks, main: pool };
       saveToLocalStorage('spin_to_win_decks', updatedDecks);
       return { ...state, sessionDecks: updatedDecks };
